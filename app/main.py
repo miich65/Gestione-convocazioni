@@ -56,6 +56,20 @@ def form_get(request: Request):
     return templates.TemplateResponse("form.html", {"request": request})
 
 # ---------------------------
+# Pagina con la lista delle convocazioni
+# ---------------------------
+@app.get("/convocazioni", response_class=HTMLResponse)
+def lista_convocazioni(request: Request):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM convocazioni ORDER BY data_inizio DESC")
+    convocazioni = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return templates.TemplateResponse("convocazioni.html", {"request": request, "convocazioni": convocazioni})
+
+
+# ---------------------------
 # Endpoint per gestire l'invio del form e salvare la convocazione nel DB
 # ---------------------------
 @app.post("/add")
@@ -82,13 +96,57 @@ def form_post(
         sport,
         squadre,
         luogo,
-        trasferta,  # <-- salva valore
+        trasferta,
         indennizzo,
         note
     ))
     conn.commit()
     conn.close()
     return templates.TemplateResponse("form.html", {"request": request, "msg": "Convocazione salvata!"})
+
+# ---------------------------
+# Endpoint per eliminare una convocazione
+# ---------------------------
+from fastapi.responses import RedirectResponse
+
+@app.post("/delete/{conv_id}")
+def delete_convocazione(conv_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM convocazioni WHERE id=?", (conv_id,))
+    conn.commit()
+    conn.close()
+    return RedirectResponse("/convocazioni", status_code=303)
+
+
+# ---------------------------
+# Endpoint per aggiornare una convocazione
+# ---------------------------
+@app.post("/update/{conv_id}")
+def update_convocazione(
+    conv_id: int,
+    data_inizio: str = Form(...),
+    orario_partenza: str = Form(...),
+    sport: str = Form(...),
+    squadre: str = Form(...),
+    luogo: str = Form(...),
+    trasferta: float = Form(0.0),
+    indennizzo: float = Form(...),
+    note: str = Form("")
+):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE convocazioni
+        SET data_inizio=?, orario_partenza=?, sport=?, squadre=?, luogo=?, trasferta=?, indennizzo=?, note=?
+        WHERE id=?
+    """, (
+        data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note, conv_id
+    ))
+    conn.commit()
+    conn.close()
+    return RedirectResponse("/lista", status_code=303)
+
 
 # ---------------------------
 # Endpoint per generare un file ICS (calendario Apple compatibile)
