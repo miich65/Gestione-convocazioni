@@ -6,5 +6,5 @@ services:
     ports:
       - "42069:8000"
     volumes:
-      - ./app/data:/app/data
+      - ./app/data:/app/data    # monta la cartella persistente
     restart: always

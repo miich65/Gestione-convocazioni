@@ -145,7 +145,7 @@ def update_convocazione(
     ))
     conn.commit()
     conn.close()
-    return RedirectResponse("/lista", status_code=303)
+    return RedirectResponse("/convocazioni", status_code=303)
 
 
 # ---------------------------
