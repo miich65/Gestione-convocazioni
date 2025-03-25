@@ -1,0 +1,12 @@
+# File sensibili
+tokengithub
+.env
+*.db
+*.ics
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Docker
+*.log
