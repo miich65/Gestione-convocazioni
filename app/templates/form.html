@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Inserisci Convocazione</title>
+</head>
+<body>
+    <h1>Nuova Convocazione</h1>
+    {% if msg %}
+        <p><strong>{{ msg }}</strong></p>
+    {% endif %}
+    <form action="/add" method="post">
+        <label>Data e ora partita:<br><input type="datetime-local" name="data_inizio" required></label><br><br>
+        <label>Orario partenza da casa:<br><input type="datetime-local" name="orario_partenza" required></label><br><br>
+        <label>Sport:<br>
+            <select name="sport">
+                <option value="inline-hockey">Inline-Hockey</option>
+                <option value="ghiaccio">Hockey su ghiaccio</option>
+            </select>
+        </label><br><br>
+        <label>Squadre (es: Team A vs Team B):<br><input type="text" name="squadre" required></label><br><br>
+        <label>Via e città:<br><input type="text" name="luogo" required></label><br><br>
+        <label>Trasferta:<input type="checkbox" name="trasferta"></label><br><br>
+        <label>Indennizzo (€):<br><input type="number" step="0.01" name="indennizzo" required></label><br><br>
+        <label>Note (es. password per chiudere partita):<br><textarea name="note"></textarea></label><br><br>
+        <button type="submit">Salva</button>
+    </form>
+    <p><a href="/calendario.ics" target="_blank">Scarica calendario (.ics)</a></p>
+</body>
+</html>
