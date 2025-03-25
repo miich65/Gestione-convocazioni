@@ -10,6 +10,9 @@ from datetime import datetime
 import sqlite3
 import os
 from ics import Calendar, Event
+from ics.alarm import DisplayAlarm
+from datetime import datetime, timedelta
+
 
 # Inizializzazione dell'app FastAPI
 app = FastAPI()
@@ -63,7 +66,7 @@ def form_post(
     sport: str = Form(...),
     squadre: str = Form(...),
     luogo: str = Form(...),
-    trasferta: str = Form(...),
+    trasferta: float = Form(0.0),  # <-- ora è float (CHF)
     indennizzo: float = Form(...),
     note: str = Form("")
 ):
@@ -79,7 +82,7 @@ def form_post(
         sport,
         squadre,
         luogo,
-        1 if trasferta == "on" else 0,
+        trasferta,  # <-- salva valore
         indennizzo,
         note
     ))
@@ -92,24 +95,32 @@ def form_post(
 # ---------------------------
 @app.get("/calendario.ics")
 def calendario_ics():
-    # Recupera le convocazioni dal DB
+    from dateutil import parser  # aggiungi questa import in cima se vuoi sicurezza
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM convocazioni")
     rows = cursor.fetchall()
     conn.close()
 
-    # Crea il calendario ICS
     cal = Calendar()
     for row in rows:
+        data_inizio = datetime.fromisoformat(row[1])
+        partenza = datetime.fromisoformat(row[2])
+
         ev = Event()
-        ev.name = row[4]  # squadre
-        ev.begin = row[1]  # data_inizio
-        ev.location = row[5]  # luogo
-        ev.description = row[8]  # note (es. password inline)
+        ev.name = row[4]               # squadre
+        ev.begin = data_inizio
+        ev.end = data_inizio + timedelta(hours=2)
+        ev.location = row[5]           # luogo
+        ev.description = row[8]        # note
+
+        ev.alarms = [
+            DisplayAlarm(trigger=partenza - data_inizio),  # X ore prima della partita (es: -2h)
+            DisplayAlarm(trigger=timedelta(days=-1)),      # 1 giorno prima
+        ]
         cal.events.add(ev)
 
-    # Scrive il file ICS su disco e lo restituisce come risposta
     with open("data/calendario.ics", "w") as f:
         f.writelines(cal.serialize_iter())
 

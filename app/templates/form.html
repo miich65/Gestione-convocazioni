@@ -3,28 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <title>Inserisci Convocazione</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Nuova Convocazione</h1>
-    {% if msg %}
-        <p><strong>{{ msg }}</strong></p>
-    {% endif %}
-    <form action="/add" method="post">
-        <label>Data e ora partita:<br><input type="datetime-local" name="data_inizio" required></label><br><br>
-        <label>Orario partenza da casa:<br><input type="datetime-local" name="orario_partenza" required></label><br><br>
-        <label>Sport:<br>
-            <select name="sport">
-                <option value="inline-hockey">Inline-Hockey</option>
-                <option value="ghiaccio">Hockey su ghiaccio</option>
-            </select>
-        </label><br><br>
-        <label>Squadre (es: Team A vs Team B):<br><input type="text" name="squadre" required></label><br><br>
-        <label>Via e città:<br><input type="text" name="luogo" required></label><br><br>
-        <label>Trasferta:<input type="checkbox" name="trasferta"></label><br><br>
-        <label>Indennizzo (€):<br><input type="number" step="0.01" name="indennizzo" required></label><br><br>
-        <label>Note (es. password per chiudere partita):<br><textarea name="note"></textarea></label><br><br>
-        <button type="submit">Salva</button>
-    </form>
-    <p><a href="/calendario.ics" target="_blank">Scarica calendario (.ics)</a></p>
+<body class="bg-light py-5">
+<div class="container">
+    <div class="card shadow-lg p-4">
+        <h1 class="mb-4 text-center">Nuova Convocazione</h1>
+
+        {% if msg %}
+            <div class="alert alert-success">{{ msg }}</div>
+        {% endif %}
+
+        <form action="/add" method="post" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Data e ora partita</label>
+                <input type="datetime-local" name="data_inizio" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Orario partenza da casa</label>
+                <input type="datetime-local" name="orario_partenza" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Sport</label>
+                <select name="sport" class="form-select">
+                    <option value="inline-hockey">Inline-Hockey</option>
+                    <option value="ghiaccio">Hockey su ghiaccio</option>
+                </select>
+            </div>
+
+            <div class="col-md-8">
+                <label class="form-label">Squadre (es: Team A vs Team B)</label>
+                <input type="text" name="squadre" class="form-control" required>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Via e città</label>
+                <input type="text" name="luogo" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Indennizzo (€)</label>
+                <input type="number" step="0.01" name="indennizzo" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Trasferta (CHF)</label>
+                <input type="number" step="0.01" name="trasferta" class="form-control">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Note (es. password o collega)</label>
+                <textarea name="note" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary">Salva convocazione</button>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/calendario.ics" target="_blank" class="btn btn-outline-secondary">Scarica calendario (.ics)</a>
+        </div>
+    </div>
+</div>
 </body>
 </html>

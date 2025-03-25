@@ -6,6 +6,7 @@ WORKDIR /app
 COPY ./app /app
 
 # Installa dipendenze
+COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Espone la porta
@@ -13,4 +14,3 @@ EXPOSE 8000
 
 # Comando di avvio
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
