@@ -114,15 +114,9 @@ def form_get(request: Request):
             categorie_by_sport[sport_id] = []
         categorie_by_sport[sport_id].append({
             "nome": cat["nome"],
-            "tipo_gara": cat["tipo_gara"],
             "indennizzo": cat["indennizzo"]
         })
 
-    return templates.TemplateResponse("form.html", {
-        "request": request,
-        "sport_list": sport,
-        "categorie_json": categorie_by_sport
-    })
 
 
 # ---------------------------
