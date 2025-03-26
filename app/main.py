@@ -57,14 +57,21 @@ cursor.execute("SELECT COUNT(*) FROM sport")
 if cursor.fetchone()[0] == 0:
     sports = {
         "Inline-Hockey": [
-            ("Senior", 35.0),
-            ("U15", 40.0),
-            ("Elite", 50.0)
+            ("Senior", 80.0),
+            ("Mini", 60.0),
+            ("Novizi", 70.0),
+            ("Novizi Elite", 90.0),
+            ("Juniores", 100.0),
+            ("Donne", 80.0),
+            ("2a lega", 80.0),
+            ("1a lega", 100.0),
+            ("LNB", 120.0),
+            ("LNA", 150.0)
         ],
         "Hockey su ghiaccio": [
-            ("U15", 55.0),
-            ("U20", 60.0),
-            ("Senior", 70.0)
+            ("U13", 50.0),
+            ("U15", 50.0),
+            ("SWHL D", 80.0)
         ]
     }
     for sport_name, categories in sports.items():
