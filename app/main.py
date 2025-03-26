@@ -156,15 +156,41 @@ def form_post(
 ):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
+    # Salva la convocazione
     cursor.execute('''
-        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note, tipo_gara)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note, tipo_gara
+        data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note
     ))
+
+    # Prepara i dati per ricaricare il form
+    cursor.execute("SELECT * FROM sport ORDER BY nome")
+    sport_list = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM categorie")
+    categorie = cursor.fetchall()
+
     conn.commit()
     conn.close()
-    return templates.TemplateResponse("form.html", {"request": request, "msg": "Convocazione salvata!"})
+
+    categorie_by_sport = {}
+    for cat in categorie:
+        sport_id = cat["sport_id"]
+        if sport_id not in categorie_by_sport:
+            categorie_by_sport[sport_id] = []
+        categorie_by_sport[sport_id].append({
+            "nome": cat["nome"],
+            "indennizzo": cat["indennizzo"]
+        })
+
+    return templates.TemplateResponse("form.html", {
+        "request": request,
+        "msg": "Convocazione salvata!",
+        "sport_list": sport_list,
+        "categorie_json": categorie_by_sport
+    })
 
 
 # ---------------------------
