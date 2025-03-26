@@ -37,7 +37,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS categorie (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sport_id INTEGER NOT NULL,
     nome TEXT NOT NULL,
-    tipo_gara TEXT DEFAULT 'Regular season',
     indennizzo REAL NOT NULL,
     FOREIGN KEY (sport_id) REFERENCES sport(id))''')
 
@@ -46,6 +45,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS convocazioni (
     data_inizio TEXT,
     orario_partenza TEXT,
     sport TEXT,
+    categoria TEXT,
+    tipo_gara TEXT,
     squadre TEXT,
     luogo TEXT,
     trasferta REAL,
@@ -56,22 +57,22 @@ cursor.execute("SELECT COUNT(*) FROM sport")
 if cursor.fetchone()[0] == 0:
     sports = {
         "Inline-Hockey": [
-            ("U13", "Regular season", 35.0),
-            ("U15", "Regular season", 40.0),
-            ("Elite", "Regular season", 50.0)
+            ("Senior", 35.0),
+            ("U15", 40.0),
+            ("Elite", 50.0)
         ],
         "Hockey su ghiaccio": [
-            ("U15", "Regular season", 55.0),
-            ("U20", "Regular season", 60.0),
-            ("Senior", "Regular season", 70.0)
+            ("U15", 55.0),
+            ("U20", 60.0),
+            ("Senior", 70.0)
         ]
     }
     for sport_name, categories in sports.items():
         cursor.execute("INSERT INTO sport (nome) VALUES (?)", (sport_name,))
         sport_id = cursor.lastrowid
-        for nome, tipo, indennizzo in categories:
-            cursor.execute('''INSERT INTO categorie (sport_id, nome, tipo_gara, indennizzo)
-                             VALUES (?, ?, ?, ?)''', (sport_id, nome, tipo, indennizzo))
+        for nome, indennizzo in categories:
+            cursor.execute('''INSERT INTO categorie (sport_id, nome, indennizzo)
+                             VALUES (?, ?, ?)''', (sport_id, nome, indennizzo))
 
 conn.commit()
 conn.close()
@@ -87,7 +88,35 @@ templates = Jinja2Templates(directory="templates")
 # ---------------------------
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
-    return templates.TemplateResponse("form.html", {"request": request})
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM sport ORDER BY nome")
+    sport = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM categorie")
+    categorie = cursor.fetchall()
+    conn.close()
+
+    # Costruisci dizionario {sport_id: [categorie]}
+    categorie_by_sport = {}
+    for cat in categorie:
+        sport_id = cat["sport_id"]
+        if sport_id not in categorie_by_sport:
+            categorie_by_sport[sport_id] = []
+        categorie_by_sport[sport_id].append({
+            "nome": cat["nome"],
+            "tipo_gara": cat["tipo_gara"],
+            "indennizzo": cat["indennizzo"]
+        })
+
+    return templates.TemplateResponse("form.html", {
+        "request": request,
+        "sport_list": sport,
+        "categorie_json": categorie_by_sport
+    })
+
 
 # ---------------------------
 # Pagina con la lista delle convocazioni
@@ -111,31 +140,26 @@ def form_post(
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
+    categoria: str = Form(...),
+    tipo_gara: str = Form(...),
     squadre: str = Form(...),
     luogo: str = Form(...),
-    trasferta: float = Form(0.0),  # <-- ora è float (CHF)
+    trasferta: float = Form(0.0),
     indennizzo: float = Form(...),
     note: str = Form("")
 ):
-    # Connessione al DB e inserimento della convocazione
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note, tipo_gara)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        data_inizio,
-        orario_partenza,
-        sport,
-        squadre,
-        luogo,
-        trasferta,
-        indennizzo,
-        note
+        data_inizio, orario_partenza, sport, squadre, luogo, trasferta, indennizzo, note, tipo_gara
     ))
     conn.commit()
     conn.close()
     return templates.TemplateResponse("form.html", {"request": request, "msg": "Convocazione salvata!"})
+
 
 # ---------------------------
 # Endpoint per eliminare una convocazione
