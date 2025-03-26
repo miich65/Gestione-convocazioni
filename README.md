@@ -2,6 +2,8 @@
 
 **RefManager** è un'applicazione web pensata per semplificare la gestione delle convocazioni arbitrali, inizialmente per l'hockey inline e su ghiaccio, ma con la flessibilità necessaria per essere estesa ad altri sport.
 
+Ospitata in: https://ref.nferreira.ch
+
 ---
 
 ## 🚀 Funzionalità principali
