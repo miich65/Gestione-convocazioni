@@ -1,96 +1,87 @@
-# Arbitro Manager
+# RefManager
 
-> 🇮🇹 Web app per arbitri di hockey per gestire le convocazioni, sincronizzare con il calendario Apple e salvare tutto in un database personale.
->
-> 🇬🇧 A web app for hockey referees to manage game assignments, sync with Apple Calendar, and store everything in a personal database.
+**RefManager** è un'applicazione web pensata per semplificare la gestione delle convocazioni arbitrali, inizialmente per l'hockey inline e su ghiaccio, ma con la flessibilità necessaria per essere estesa ad altri sport.
 
 ---
 
-## 🇮🇹 Caratteristiche principali
-- Inserimento convocazioni tramite form web minimale
-- Salvataggio dati in database locale (SQLite)
-- Generazione automatica di un file `.ics` per sottoscrizione su Apple Calendar
-- Interfaccia leggibile da tutti i dispositivi
-- Esecuzione sicura in locale con Docker
+## 🚀 Funzionalità principali
 
-## 🇬🇧 Key Features
-- Add assignments via minimal web form
-- Store data locally in SQLite database
-- Automatically generate `.ics` calendar feed for Apple Calendar
-- Usable on all devices
-- Fully local and secure, Docker-based setup
+- Inserimento rapido delle convocazioni tramite form moderno
+- CRUD completo per convocazioni, sport e categorie
+- Calendario esportabile in formato `.ics` compatibile con Apple, Google e Outlook
+- Calcolo automatico dell'indennizzo in base a sport e categoria
+- Sistema di promemoria (ICS) prima della gara e della partenza
+- UI responsive e moderna basata su **Bootstrap 5**
+- Modalità di aggiornamento automatizzata con script di deploy
 
 ---
 
-## 🚀 Installazione / Installation
+## 🛠️ Tecnologie
 
-### Requisiti / Requirements
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
+- **Backend:** Python + FastAPI
+- **Frontend:** HTML, Bootstrap, Jinja2
+- **Database:** SQLite (persistente in `data/`)
+- **Container:** Docker, Docker Compose
+- **Calendari:** ICS/WebCal con notifiche automatiche
 
-### Avvio rapido / Quick Start
+---
+
+## 🚧 Avvio e Deploy
+
+### 1. Clona il progetto:
 ```bash
-git clone https://github.com/tuo-utente/arbitro-manager.git
-cd arbitro-manager
-docker-compose up --build
+git clone https://github.com/miich65/Gestione-convocazioni.git
+cd Gestione-convocazioni
 ```
 
-L'app sarà disponibile su `http://localhost:8000`  
-The app will be available at `http://localhost:8000`
-
----
-
-## ✏️ Uso / How to Use
-
-1. Apri `http://localhost:8000`
-2. Compila il form con i dati della convocazione
-3. Clicca "Salva"
-4. Visita `http://localhost:8000/calendario.ics` per ottenere il file del calendario
-5. Su Apple Calendar, vai su:
-   - `File -> Nuovo calendario in abbonamento -> Incolla URL http://localhost:8000/calendario.ics`
-
----
-
-## 🗃️ Campi della convocazione / Assignment Fields
-
-| Campo / Field            | Tipo / Type      | Descrizione / Description                  |
-|--------------------------|------------------|---------------------------------------------|
-| Data e ora inizio        | `datetime`       | Inizio partita                              |
-| Orario partenza          | `datetime`       | Quando parti da casa                        |
-| Sport                    | `string`         | "inline-hockey" o "ghiaccio"               |
-| Squadre (vs)             | `string`         | Es: "Team A vs Team B"                      |
-| Luogo                    | `string`         | Indirizzo e città                           |
-| Trasferta                | `boolean`        | Trasferta o no                              |
-| Indennizzo               | `float`          | Rimborso in euro                            |
-| Note                     | `text`           | Es. password per chiudere partita (inline)  |
-
----
-
-## 📂 Struttura del progetto / Project Structure
-
+### 2. Avvia con Docker:
+```bash
+docker compose up -d --build
 ```
-arbitro-manager/
-├── app/
-│   ├── main.py              # Backend FastAPI
-│   ├── templates/form.html  # Frontend HTML (UI)
-│   ├── static/              # (opzionale) CSS/JS
-│   └── data/convocazioni.db # Database locale SQLite
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
+
+L'app sarà accessibile via browser su:
+```
+http://localhost:8000
+```
+o su una porta personalizzata (es. 42069).
+
+### 3. Script di Deploy
+
+```bash
+cd /var/www/refTI/gestione-convocazioni/Gestione-convocazioni
+docker compose down
+git pull origin main
+docker compose up -d --build
 ```
 
 ---
 
-## 📈 Futuri sviluppi / Future improvements
-- Statistiche e report partite
-- Visualizzazione elenco convocazioni
-- Modifica/eliminazione convocazioni
-- Login utente e backup
+## 🗓️ Calendario Web
+
+Puoi iscriverti al calendario personale arbitrale tramite:
+
+```
+webcal://ref.mferreira.ch/calendario.ics
+```
 
 ---
 
-## 👨‍💻 Autore / Author
-**[@miich65](https://github.com/miich65)** – Arbitro & sviluppatore 📊🏒
+## 🌐 Roadmap
 
+- [x] Gestione Sport e Categorie
+- [x] Form avanzato convocazioni con auto-calcolo indennizzo
+- [ ] Login multi-account con ruoli (admin, arbitro)
+- [ ] Parsing automatico da email (Gmail/IMAP)
+- [ ] Import/export CSV
+
+---
+
+## 📄 Licenza
+
+Progetto sviluppato da [@miich65](https://github.com/miich65). Uso personale ma pensato per una futura distribuzione nella community arbitrale.
+
+---
+
+**Nome del progetto:** `RefManager`
+
+Semplice. Pulito. Per arbitri.
