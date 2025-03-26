@@ -50,6 +50,22 @@
                 <input type="text" name="squadre" class="form-control" placeholder="Inserisci i nomi delle squadre" required>
             </div>
 
+            <div class="col-md-6">
+                <label class="form-label">Categoria</label>
+                <select name="categoria" class="form-select" required>
+                    <option value="">Seleziona categoria</option>
+                    <option value="U9">U9</option>
+                    <option value="U11">U11</option>
+                    <option value="U13">U13</option>
+                    <option value="U15">U15</option>
+                    <option value="U17">U17</option>
+                    <option value="U20">U20</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Amatori">Amatori</option>
+                </select>
+            </div>
+                   
+
             <div class="col-12">
                 <label class="form-label">Via e città</label>
                 <input type="text" name="luogo" class="form-control" placeholder="Inserisci via e città" required>
@@ -76,7 +92,7 @@
         </form>
 
         <div class="text-center mt-4">
-            <a href="webcal://trasporti.mferreira.ch:42069/calendario.ics" class="btn btn-success" target="_blank">
+            <a href="webcal://ref.mferreira.ch/calendario.ics" class="btn btn-success" target="_blank">
                 📅 Iscriviti al tuo calendario personale
             </a>
         </div>

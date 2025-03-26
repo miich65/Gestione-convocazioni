@@ -23,22 +23,56 @@ app = FastAPI()
 DB_PATH = "data/convocazioni.db"
 os.makedirs("data", exist_ok=True)  # Crea la cartella data se non esiste
 
-# Creazione della tabella se non esiste
+# ---------------------------
+# Connessione al database e creazione delle tabelle se non esistono
+# ---------------------------
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS convocazioni (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        data_inizio TEXT,
-        orario_partenza TEXT,
-        sport TEXT,
-        squadre TEXT,
-        luogo TEXT,
-        trasferta INTEGER,
-        indennizzo REAL,
-        note TEXT
-    )
-''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS sport (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT UNIQUE NOT NULL)''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS categorie (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sport_id INTEGER NOT NULL,
+    nome TEXT NOT NULL,
+    tipo_gara TEXT DEFAULT 'Regular season',
+    indennizzo REAL NOT NULL,
+    FOREIGN KEY (sport_id) REFERENCES sport(id))''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS convocazioni (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data_inizio TEXT,
+    orario_partenza TEXT,
+    sport TEXT,
+    squadre TEXT,
+    luogo TEXT,
+    trasferta REAL,
+    indennizzo REAL,
+    note TEXT)''')
+
+cursor.execute("SELECT COUNT(*) FROM sport")
+if cursor.fetchone()[0] == 0:
+    sports = {
+        "Inline-Hockey": [
+            ("U13", "Regular season", 35.0),
+            ("U15", "Regular season", 40.0),
+            ("Elite", "Regular season", 50.0)
+        ],
+        "Hockey su ghiaccio": [
+            ("U15", "Regular season", 55.0),
+            ("U20", "Regular season", 60.0),
+            ("Senior", "Regular season", 70.0)
+        ]
+    }
+    for sport_name, categories in sports.items():
+        cursor.execute("INSERT INTO sport (nome) VALUES (?)", (sport_name,))
+        sport_id = cursor.lastrowid
+        for nome, tipo, indennizzo in categories:
+            cursor.execute('''INSERT INTO categorie (sport_id, nome, tipo_gara, indennizzo)
+                             VALUES (?, ?, ?, ?)''', (sport_id, nome, tipo, indennizzo))
+
 conn.commit()
 conn.close()
 
@@ -67,7 +101,6 @@ def lista_convocazioni(request: Request):
     convocazioni = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return templates.TemplateResponse("convocazioni.html", {"request": request, "convocazioni": convocazioni})
-
 
 # ---------------------------
 # Endpoint per gestire l'invio del form e salvare la convocazione nel DB
@@ -118,7 +151,6 @@ def delete_convocazione(conv_id: int):
     conn.close()
     return RedirectResponse("/convocazioni", status_code=303)
 
-
 # ---------------------------
 # Endpoint per aggiornare una convocazione
 # ---------------------------
@@ -147,6 +179,70 @@ def update_convocazione(
     conn.close()
     return RedirectResponse("/convocazioni", status_code=303)
 
+# ---------------------------
+# Pagina con la lista degli sport disponibili
+# ---------------------------
+@app.get("/gestione-sport", response_class=HTMLResponse)
+def gestione_sport(request: Request):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM sport ORDER BY nome")
+    sport = cur.fetchall()
+    cur.execute('''SELECT categorie.*, sport.nome as sport_nome FROM categorie
+                   JOIN sport ON categorie.sport_id = sport.id
+                   ORDER BY sport.nome, categorie.nome''')
+    categorie = cur.fetchall()
+    conn.close()
+    return templates.TemplateResponse("gestione-sport.html", {"request": request, "sport_list": sport, "sport_categorie": categorie})
+
+# ---------------------------
+# Endpoint per aggiungere un nuovo sport
+# ---------------------------
+@app.post("/add-sport")
+def add_sport(nome: str = Form(...)):
+    # Connessione al database e inserimento del nuovo sport
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR IGNORE INTO sport (nome) VALUES (?)", (nome,))
+    conn.commit()
+    conn.close()
+    # Reindirizzamento alla pagina di gestione sport
+    return RedirectResponse("/gestione-sport", status_code=303)
+
+# ---------------------------
+# Endpoint per aggiungere una nuova categoria
+# ---------------------------
+@app.post("/add-categoria")
+def add_categoria(
+    sport_id: int = Form(...),          # ID dello sport a cui appartiene la categoria
+    nome_categoria: str = Form(...),   # Nome della categoria
+    tipo_gara: str = Form(...),        # Tipo di gara (es. Regular season)
+    indennizzo: float = Form(...)      # Indennizzo per la categoria
+):
+    # Connessione al database e inserimento della nuova categoria
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''INSERT INTO categorie (sport_id, nome, tipo_gara, indennizzo)
+                      VALUES (?, ?, ?, ?)''', (sport_id, nome_categoria, tipo_gara, indennizzo))
+    conn.commit()
+    conn.close()
+    # Reindirizzamento alla pagina di gestione sport
+    return RedirectResponse("/gestione-sport", status_code=303)
+
+# ---------------------------
+# Endpoint per eliminare una categoria
+# ---------------------------
+@app.post("/delete-categoria/{id}")
+def delete_categoria(id: int):
+    # Connessione al database ed eliminazione della categoria specificata
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM categorie WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    # Reindirizzamento alla pagina di gestione sport
+    return RedirectResponse("/gestione-sport", status_code=303)
 
 # ---------------------------
 # Endpoint per generare un file ICS (calendario Apple compatibile)
@@ -167,11 +263,11 @@ def calendario_ics():
         partenza = datetime.fromisoformat(row[2])
 
         ev = Event()
-        ev.name = row[4]               # squadre
+        ev.name = row[4]               
         ev.begin = data_inizio
         ev.end = data_inizio + timedelta(hours=2)
-        ev.location = row[5]           # luogo
-        ev.description = row[8]        # note
+        ev.location = row[5]
+        ev.description = row[8]        
 
         ev.alarms = [
             DisplayAlarm(trigger=partenza - data_inizio),  # X ore prima della partita (es: -2h)
