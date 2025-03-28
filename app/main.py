@@ -250,7 +250,12 @@ def gestione_sport(request: Request):
                    ORDER BY sport.nome, categorie.nome''')
     categorie = cur.fetchall()
     conn.close()
-    return templates.TemplateResponse("gestione-sport.html", {"request": request, "sport_list": sport, "sport_categorie": categorie})
+    categorie_dict = [dict(row) for row in categorie]
+    return templates.TemplateResponse("gestione-sport.html", {
+        "request": request,
+        "sport_list": sport,
+        "sport_categorie": categorie_dict
+    })
 
 # ---------------------------
 # Endpoint per aggiungere un nuovo sport
