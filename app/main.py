@@ -242,18 +242,25 @@ def update_convocazione(
 def gestione_sport(request: Request):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+
     cur = conn.cursor()
     cur.execute("SELECT * FROM sport ORDER BY nome")
+
     sport = cur.fetchall()
+    sport_dict = [dict(row) for row in sport]
+
     cur.execute('''SELECT categorie.*, sport.nome as sport_nome FROM categorie
                    JOIN sport ON categorie.sport_id = sport.id
                    ORDER BY sport.nome, categorie.nome''')
+    
     categorie = cur.fetchall()
-    conn.close()
     categorie_dict = [dict(row) for row in categorie]
+
+    conn.close()    
+    
     return templates.TemplateResponse("gestione-sport.html", {
         "request": request,
-        "sport_list": sport,
+        "sport_list": sport_dict,
         "sport_categorie": categorie_dict
     })
 
