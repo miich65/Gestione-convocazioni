@@ -80,12 +80,10 @@
     <script>
         const sportSelector = document.getElementById('sportSelector');
         const categorieWrapper = document.getElementById('categorieTableContainer');
-        const selectedSportInput = document.getElementById('selectedSportInput');
 
     const allCategorie = JSON.parse('{{ sport_categorie | tojson | safe }}');
 
     function renderCategorie(sportId) {
-        selectedSportInput.value = sportId;
 
         const filtered = allCategorie.filter(c => c.sport_id == sportId);
         if (filtered.length === 0) {
