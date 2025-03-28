@@ -12,6 +12,7 @@ import os
 from ics import Calendar, Event
 from ics.alarm import DisplayAlarm
 from datetime import datetime, timedelta
+import json
 
 
 # Inizializzazione dell'app FastAPI
@@ -261,7 +262,8 @@ def gestione_sport(request: Request):
     return templates.TemplateResponse("gestione-sport.html", {
         "request": request,
         "sport_list": sport_dict,
-        "sport_categorie": categorie_dict
+        "sport_categorie": categorie_dict,
+        "sport_categorie_json": json.dumps(categorie_dict)
     })
 
 # ---------------------------

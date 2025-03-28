@@ -64,8 +64,8 @@
     const categorieWrapper = document.getElementById('categorieWrapper');
     const selectedSportInput = document.getElementById('selectedSportInput');
 
-    const allCategorie = JSON.parse('{{ sport_categorie|tojson|escapejs }}');
-    
+    const allCategorie = JSON.parse('{{ sport_categorie_json | safe }}');
+
     function renderCategorie(sportId) {
         selectedSportInput.value = sportId;
 
