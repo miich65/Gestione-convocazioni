@@ -31,9 +31,9 @@
         </div>
     </form>
 
-    <h3 class="mb-3 d-flex flex-wrap align-items-center">
-        Aggiungi categoria a&nbsp;
-        <select name="sport_id" id="sportSelect" class="form-select form-select-sm w-auto d-inline-block me-2" required>
+    <h3 class="mb-3">
+        <label for="sportSelector" class="form-label d-inline">Aggiungi categoria a</label>
+        <select name="sport_id" id="sportSelector" class="form-select d-inline w-auto ms-2" required>
             <option value="">Seleziona sport</option>
             {% for sport in sport_list %}
                 <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
@@ -41,18 +41,20 @@
         </select>
     </h3>
     
-    <form action="/add-categoria" method="post" class="row g-3 mb-5 align-items-end">
-        <input type="hidden" name="sport_id" id="selectedSportId">
+    <form action="/add-categoria" method="post" class="row g-2 mb-4 align-items-end">
+        <input type="hidden" name="sport_id" id="selectedSportInput">
     
         <div class="col-md-5 col-sm-6">
-            <label class="form-label visually-hidden" for="nome_categoria">Categoria</label>
-            <input type="text" maxlength="40" name="nome_categoria" placeholder="Nome Categoria" class="form-control" required>
+            <label for="nome_categoria" class="form-label">Nome Categoria</label>
+            <input type="text" maxlength="40" name="nome_categoria" id="nome_categoria" placeholder="Nome Categoria" class="form-control" required>
         </div>
+    
         <div class="col-md-3 col-sm-4">
-            <label class="form-label visually-hidden" for="indennizzo">Indennizzo</label>
-            <input type="number" step="0.01" name="indennizzo" placeholder="CHF" class="form-control w-100" required>
+            <label for="indennizzo" class="form-label">Indennizzo (CHF)</label>
+            <input type="number" step="0.01" name="indennizzo" id="indennizzo" class="form-control" required>
         </div>
-        <div class="col-md-2 col-sm-12">
+    
+        <div class="col-md-2 col-sm-12 mt-sm-2 mt-md-0">
             <button class="btn btn-success w-100">Aggiungi</button>
         </div>
     </form>
@@ -106,7 +108,7 @@
         `;
     }
 
-    sportSelector.addEventListener('change', (e) => {
+    sportSelectoror.addEventListener('change', (e) => {
         const sportId = e.target.value;
         renderCategorie(sportId);
     });
