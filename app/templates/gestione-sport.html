@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <title>Gestione Sport e Categorie</title>
     {% include 'partials/head-imports.html' %}
+    <style>
+        input[name="nome_categoria"] {
+            max-width: 240px;
+        }
+        input[name="indennizzo"] {
+            max-width: 120px;
+        }
+    </style>
 </head>
 <body class="bg-light">
-    {% include 'partials/navbar.html' %}
+{% include 'partials/navbar.html' %}
+
 <div class="container py-5">
     <h2 class="mb-4">Gestione Sport</h2>
 
@@ -21,58 +30,82 @@
         </div>
     </form>
 
-    <h3 class="mb-3">Aggiungi Categoria a Sport</h3>
-    <!-- Aggiungi categoria -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+        <h3 class="mb-0">Aggiungi categoria a</h3>
+        <select id="sportSelector" name="sport_id" class="form-select w-auto" required>
+            <option value="">Seleziona sport</option>
+            {% for sport in sport_list %}
+                <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <form action="/add-categoria" method="post" class="row g-3 mb-5">
-        <div class="col-md-4">
-            <label class="form-label">Sport</label>
-            <select name="sport_id" class="form-select" required>
-                {% for sport in sport_list %}
-                    <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
-                {% endfor %}
-            </select>
+        <input type="hidden" name="sport_id" id="selectedSportInput">
+        <div class="col-md-5 col-sm-12">
+            <input type="text" name="nome_categoria" class="form-control" placeholder="Nome Categoria" maxlength="40" required>
         </div>
-        <div class="col-md-4">
-            <label class="form-label">Nome Categoria</label>
-            <input type="text" name="nome_categoria" class="form-control" required>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Indennizzo (CHF)</label>
-            <input type="number" step="0.01" name="indennizzo" class="form-control" required>
+        <div class="col-md-3 col-sm-6">
+            <input type="number" step="0.01" name="indennizzo" class="form-control" placeholder="Indennizzo (CHF)" required>
         </div>
         <div class="col-12">
             <button class="btn btn-success">Aggiungi Categoria</button>
         </div>
     </form>
 
-    <h3 class="mb-4">Categorie registrate</h3>
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Sport</th>
-            <th>Categoria</th>
-            <th>Indennizzo</th>
-            <th>Azioni</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for item in sport_categorie %}
-        <tr>
-            <td>{{ item['sport_nome'] }}</td>
-            <td>{{ item['nome'] }}</td>
-            <td>{{ item['indennizzo'] }} CHF</td>
-            <td>
-                <form action="/delete-categoria/{{ item['id'] }}" method="post" style="display:inline-block" onsubmit="return confirm('Eliminare questa categoria?');">
-                    <button class="btn btn-sm btn-danger">Elimina</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <h3 class="mb-3">Categorie registrate</h3>
+    <div id="categorieWrapper">
+        <p class="text-muted">Seleziona uno sport per vedere le categorie associate.</p>
+    </div>
 </div>
+
 <script>
-    // JS riservato ad aggiornamenti dinamici futuri
+    const sportSelector = document.getElementById('sportSelector');
+    const categorieWrapper = document.getElementById('categorieWrapper');
+    const selectedSportInput = document.getElementById('selectedSportInput');
+
+    const allCategorie = {{ sport_categorie|tojson|safe }};
+
+    function renderCategorie(sportId) {
+        selectedSportInput.value = sportId;
+
+        const filtered = allCategorie.filter(c => c.sport_id == sportId);
+        if (filtered.length === 0) {
+            categorieWrapper.innerHTML = `<p class="text-muted">Non ci sono categorie per lo sport selezionato.</p>`;
+            return;
+        }
+
+        const rows = filtered.map(item => `
+            <tr>
+                <td>${item.nome}</td>
+                <td>${item.indennizzo} CHF</td>
+                <td>
+                    <form action="/delete-categoria/${item.id}" method="post" onsubmit="return confirm('Eliminare questa categoria?');">
+                        <button class="btn btn-sm btn-danger">Elimina</button>
+                    </form>
+                </td>
+            </tr>
+        `).join('');
+
+        categorieWrapper.innerHTML = `
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Indennizzo</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    sportSelector.addEventListener('change', (e) => {
+        const sportId = e.target.value;
+        renderCategorie(sportId);
+    });
+
 </script>
 </body>
 </html>
