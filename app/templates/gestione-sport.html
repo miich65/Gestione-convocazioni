@@ -30,7 +30,7 @@
             <button class="btn btn-primary">Aggiungi Sport</button>
         </form>
 
-        <div class="card mb-4 shadow-sm">
+        <div class="card my-4 shadow-sm">
             <div class="card-body">
                 <h3 class="card-title mb-4">
                     <label for="sportSelector" class="form-label">Aggiungi categoria a</label>
@@ -42,24 +42,24 @@
                     </select>
                 </h3>
                 
-                <form action="/add-categoria" method="post" class="row row-cols-1 row-cols-sm-3 g-4 align-items-end">
-                    <!-- Categoria -->
-                    <div>
-                        <label class="form-label fw-bold">Nome Categoria</label>
-                        <input name="nome_categoria" class="form-control" maxlength="40" required 
-                               placeholder="Inserisci nome categoria">
-                    </div>
-
-                    <!-- Indennizzo -->
-                    <div>
-                        <label class="form-label fw-bold">Indennizzo (CHF)</label>
-                        <input name="indennizzo" class="form-control" type="number" step="0.01" required
-                               placeholder="0.00">
+                <form action="/add-categoria" method="post" class="row g-4 align-items-end">
+                    <!-- Categoria e Indennizzo nella stessa riga -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nome Categoria</label>
+                            <input name="nome_categoria" class="form-control" maxlength="40" required 
+                                   placeholder="Inserisci nome categoria">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Indennizzo (CHF)</label>
+                            <input name="indennizzo" class="form-control" type="number" step="0.01" required
+                                   placeholder="0.00">
+                        </div>
                     </div>
 
                     <!-- Bottone -->
-                    <div>
-                        <button class="btn btn-success w-100 py-2">
+                    <div class="col-12">
+                        <button class="btn btn-success py-2"></button>
                             <i class="fas fa-plus me-2"></i>Aggiungi
                         </button>
                     </div>
