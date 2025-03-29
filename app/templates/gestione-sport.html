@@ -125,6 +125,46 @@
                 font-size: 14px;
             }
         }
+
+        #filterSport {
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background-color: rgba(255,255,255,0.9);
+            padding-right: 30px; /* Spazio per la freccia */
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .categoria-item {
+            opacity: 0;
+            transition: all 0.3s ease, opacity 0.6s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .card-header .d-flex {
+                margin-top: 0.5rem;
+                width: 100%;
+            }
+            
+            #filterSport {
+                width: 100%;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+            }
+            
+            .card-title.text-truncate {
+                max-width: 120px !important;
+            }
+        }
     </style>
     
 </head>
@@ -163,52 +203,47 @@
 
         <!-- Form Aggiunta/Modifica Categoria -->
         <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    {% if categoria_edit is defined %}
-                        Modifica Categoria
-                    {% else %}
-                        Aggiungi Nuova Categoria
-                    {% endif %}
+        <div class="card mb-4">
+        <div class="card-header">
+            {% if categoria_edit is defined %}
+                Modifica Categoria
+            {% else %}
+                Aggiungi Nuova Categoria
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form action="{% if categoria_edit is defined %}/update-categoria/{{ categoria_edit.id }}{% else %}/add-categoria{% endif %}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Sport</label>
+                    <select name="sport_id" class="form-select" required>
+                        <option value="">Seleziona Sport</option>
+                        {% for sport in sport_list %}
+                            <option value="{{ sport.id }}" 
+                                {% if categoria_edit is defined and categoria_edit.sport_id == sport.id %}selected{% endif %}>
+                                {{ sport.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="card-body">
-                    <form action="{% if categoria_edit is defined %}/update-categoria/{{ categoria_edit.id }}{% else %}/add-categoria{% endif %}" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Sport</label>
-                            <select name="sport_id" class="form-select" required>
-                                <option value="">Seleziona Sport</option>
-                                {% for sport in sport_list %}
-                                    <option value="{{ sport.id }}" 
-                                        {% if categoria_edit is defined and categoria_edit.sport_id == sport.id %}selected{% endif %}>
-                                        {{ sport.nome }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nome Categoria</label>
-                            <input type="text" name="nome_categoria" class="form-control" 
-                                   value="{{ categoria_edit.nome if categoria_edit is defined else '' }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tipo Gara</label>
-                            <input type="text" name="tipo_gara" class="form-control" 
-                                   value="{{ categoria_edit.tipo_gara if categoria_edit is defined else '' }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Indennizzo (CHF)</label>
-                            <input type="number" name="indennizzo" class="form-control" step="0.01" 
-                                   value="{{ categoria_edit.indennizzo if categoria_edit is defined else '' }}" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            {% if categoria_edit is defined %}Aggiorna{% else %}Aggiungi{% endif %}
-                        </button>
-                        {% if categoria_edit is defined %}
-                            <a href="/gestione-sport" class="btn btn-secondary ms-2">Annulla</a>
-                        {% endif %}
-                    </form>
+                <div class="mb-3">
+                    <label class="form-label">Nome Categoria</label>
+                    <input type="text" name="nome_categoria" class="form-control" 
+                            value="{{ categoria_edit.nome if categoria_edit is defined else '' }}" required>
                 </div>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Indennizzo (CHF)</label>
+                    <input type="number" name="indennizzo" class="form-control" step="0.01" 
+                            value="{{ categoria_edit.indennizzo if categoria_edit is defined else '' }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    {% if categoria_edit is defined %}Aggiorna{% else %}Aggiungi{% endif %}
+                </button>
+                {% if categoria_edit is defined %}
+                    <a href="/gestione-sport" class="btn btn-secondary ms-2">Annulla</a>
+                {% endif %}
+            </form>
+        </div>
+        </div>
         </div>
     </div>
 
@@ -248,53 +283,54 @@
             </div>
         </div>
     <div class="col-md-6">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Categorie Registrate</span>
-            <div class="d-flex align-items-center">
-                <label class="me-2 mb-0">Filtra per Sport:</label>
-                <select id="filterSport" class="form-select form-select-sm" style="width: auto;">
-                    <option value="all">Tutti gli Sport</option>
-                    {% for sport in sport_list %}
-                        <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                    {% endfor %}
-                </select>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Categorie Registrate</span>
+                <div class="d-flex align-items-center">
+                    <label class="me-2 mb-0">Filtra:</label>
+                    <select id="filterSport" class="form-select form-select-sm" style="min-width: 150px;">
+                        <option value="all">Tutti gli Sport</option>
+                        {% for sport in sport_list %}
+                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <div id="categorie-container" class="row row-cols-1 g-3">
-                {% for categoria in sport_categorie %}
-                <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
-                    <div class="card h-100 categoria-item">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h5 class="card-title mb-1">{{ categoria.nome }}</h5>
-                                    <span class="badge bg-primary">{{ categoria.sport_nome }}</span>
-                                    <span class="badge bg-secondary">{{ categoria.tipo_gara }}</span>
-                                    <div class="mt-2">
-                                        <strong class="text-success">{{ categoria.indennizzo }} CHF</strong>
+            <div class="card-body">
+                <div id="categorie-container" class="row row-cols-1 g-3">
+                    {% for categoria in sport_categorie %}
+                    <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
+                        <div class="card h-100 categoria-item">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-primary me-2">{{ categoria.sport_nome }}</span>
+                                            <h5 class="card-title mb-0 text-truncate" style="max-width: 180px;" title="{{ categoria.nome }}">{{ categoria.nome }}</h5>
+                                        </div>
+                                        <div class="mt-2">
+                                            <strong class="text-success">{{ categoria.indennizzo }} CHF</strong>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="d-flex flex-column">
-                                    <a href="/edit-categoria/{{ categoria.id }}" class="btn btn-sm btn-primary mb-2">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="/delete-categoria/{{ categoria.id }}" method="post" 
-                                        onsubmit="return confirm('Eliminare questa categoria?');">
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <div class="d-flex flex-column">
+                                        <a href="/edit-categoria/{{ categoria.id }}" class="btn btn-sm btn-primary mb-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="/delete-categoria/{{ categoria.id }}" method="post" 
+                                            onsubmit="return confirm('Eliminare questa categoria?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
-    </div>
     </div>
 
 
@@ -344,78 +380,32 @@
                 filterCategories(this.value);
             });
             
-            // Gestione della ricerca "live" (opzionale)
-            const searchInput = document.getElementById('searchCategoria');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase().trim();
-                    const currentSportId = filterSport.value;
-                    
-                    categorieCards.forEach(card => {
-                        const categoryName = card.querySelector('.card-title').textContent.toLowerCase();
-                        const sportId = card.dataset.sportId;
-                        
-                        const matchesSearch = searchTerm === '' || categoryName.includes(searchTerm);
-                        const matchesSport = currentSportId === 'all' || sportId === currentSportId;
-                        
-                        if (matchesSearch && matchesSport) {
-                            card.classList.remove('d-none');
-                        } else {
-                            card.classList.add('d-none');
-                        }
-                    });
-                });
-            }
+            // Inizializza il filtro alla prima apertura
+            filterCategories('all');
             
-            // Ordinamento categorie (opzionale)
-            const sortSelect = document.getElementById('sortCategorie');
-            if (sortSelect) {
-                sortSelect.addEventListener('change', function() {
-                    const sortBy = this.value;
-                    const container = document.getElementById('categorie-container');
-                    const cards = Array.from(container.querySelectorAll('.categoria-card'));
-                    
-                    cards.sort((a, b) => {
-                        if (sortBy === 'name') {
-                            const nameA = a.querySelector('.card-title').textContent;
-                            const nameB = b.querySelector('.card-title').textContent;
-                            return nameA.localeCompare(nameB);
-                        } else if (sortBy === 'indennizzo') {
-                            const valueA = parseFloat(a.querySelector('.text-success').textContent);
-                            const valueB = parseFloat(b.querySelector('.text-success').textContent);
-                            return valueB - valueA; // Ordine decrescente
-                        }
-                        return 0;
-                    });
-                    
-                    cards.forEach(card => container.appendChild(card));
-                });
-            }
-        });
-        
-        // Gestione del form di categoria
-        const sportSelector = document.querySelector('select[name="sport_id"]');
-        if (sportSelector) {
-            const allCategorie = JSON.parse('{{ sport_categorie | tojson | safe }}');
-            
-            sportSelector.addEventListener('change', (e) => {
-                const sportId = e.target.value;
-                
-                // Aggiorna i campi relativi allo sport selezionato, se necessario
-                // Ad esempio, si potrebbe pre-compilare il tipo di gara in base allo sport
-            });
-        }
-        
-        // Animazione per le card al caricamento
-        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione per le card al caricamento
             const cards = document.querySelectorAll('.categoria-item');
-            
             cards.forEach((card, index) => {
                 setTimeout(() => {
                     card.style.opacity = '1';
                 }, index * 50);
             });
+            
+            // Assicuriamoci che i titoli troppo lunghi abbiano il tooltip
+            const truncatedTexts = document.querySelectorAll('.text-truncate');
+            truncatedTexts.forEach(element => {
+                const fullText = element.textContent;
+                element.setAttribute('title', fullText);
+            });
         });
+        
+        // Gestione del form di categoria
+        const sportSelector = document.querySelector('select[name="sport_id"]');
+        if (sportSelector) {
+            sportSelector.addEventListener('change', (e) => {
+                // Eventuali operazioni in base al cambio di sport
+            });
+        }
         
         // Conferma eliminazione
         const deleteForms = document.querySelectorAll('form[action^="/delete-"]');
