@@ -18,50 +18,6 @@
             font-family: 'Inter', 'Roboto', sans-serif;
         }
         
-        .categoria-item {
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        .categoria-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.35em 0.65em;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        #filterSport {
-            border-radius: 20px;
-            font-size: 0.85rem;
-            background-color: rgba(255,255,255,0.9);
-        }
-        
-        .card-header {
-            font-weight: 600;
-        }
-        
-        @media (max-width: 768px) {
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start !important;
-            }
-            
-            .card-header .d-flex {
-                margin-top: 0.5rem;
-                width: 100%;
-            }
-            
-            #filterSport {
-                width: 100% !important;
-            }
-        }
-        
         .card {
             border: none;
             border-radius: 12px;
@@ -79,6 +35,18 @@
             color: white;
             border-bottom: none;
             border-radius: 12px 12px 0 0;
+            font-weight: 600;
+        }
+        
+        .categoria-item {
+            opacity: 0;
+            transition: all 0.3s ease, opacity 0.6s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .categoria-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
         
         .form-control, .form-select {
@@ -116,21 +84,19 @@
             color: white;
         }
         
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
-            }
-            
-            .form-control, .form-select {
-                font-size: 14px;
-            }
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
+        
         #filterSport {
             border-radius: 20px;
             font-size: 0.85rem;
             background-color: rgba(255,255,255,0.9);
-            padding-right: 30px; /* Spazio per la freccia */
+            padding-right: 30px;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
@@ -142,55 +108,25 @@
             white-space: nowrap;
         }
         
-        .categoria-item {
-            opacity: 0;
-            transition: all 0.3s ease, opacity 0.6s ease;
-        }
-        
         @media (max-width: 768px) {
-            .card-header .d-flex {
-                margin-top: 0.5rem;
-                width: 100%;
-            }
-            
-            #filterSport {
-                width: 100%;
-            }
-            
-            .badge {
-                font-size: 0.7rem;
-            }
-            
-            .card-title.text-truncate {
-                max-width: 120px !important;
-            }
-        }
-        @media (max-width: 768px) {
+            .card-body { padding: 1rem; }
+            .form-control, .form-select { font-size: 14px; }
             .card-header {
                 flex-direction: column;
                 align-items: flex-start !important;
             }
-            
             .card-header .d-flex {
                 margin-top: 0.5rem;
                 width: 100%;
             }
-            
             #filterSport {
                 width: 100%;
-                max-width: 200px; /* Imposta una larghezza massima */
+                max-width: 200px;
             }
-            
-            .badge {
-                font-size: 0.7rem;
-            }
-            
-            .card-title.text-truncate {
-                max-width: 120px !important;
-            }
+            .badge { font-size: 0.7rem; }
+            .card-title.text-truncate { max-width: 120px !important; }
         }
     </style>
-    
 </head>
 <body>
 {% include 'partials/navbar.html' %}
@@ -200,18 +136,14 @@
         <!-- Form Aggiunta Sport -->
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-header">
-                    Aggiungi Nuovo Sport
-                </div>
+                <div class="card-header">Aggiungi Nuovo Sport</div>
                 <div class="card-body">
                     <form action="/add-sport" method="post">
                         <div class="mb-3">
                             <label class="form-label">Nome Sport</label>
                             <input type="text" name="nome" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            Aggiungi
-                        </button>
+                        <button type="submit" class="btn btn-primary">Aggiungi</button>
                     </form>
                 </div>
             </div>
@@ -220,9 +152,7 @@
         <!-- Form Aggiunta Categoria -->
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-header">
-                    Aggiungi Nuova Categoria
-                </div>
+                <div class="card-header">Aggiungi Nuova Categoria</div>
                 <div class="card-body">
                     <form action="/add-categoria" method="post">
                         <div class="mb-3">
@@ -242,9 +172,7 @@
                             <label class="form-label">Indennizzo (CHF)</label>
                             <input type="number" name="indennizzo" class="form-control" step="0.01" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            Aggiungi
-                        </button>
+                        <button type="submit" class="btn btn-primary">Aggiungi</button>
                     </form>
                 </div>
             </div>
@@ -285,56 +213,57 @@
                 </div>
             </div>
         </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Categorie Registrate</span>
-                <div class="d-flex align-items-center">
-                    <label class="me-2 mb-0">Filtra:</label>
-                    <select id="filterSport" class="form-select form-select-sm" style="min-width: 150px;">
-                        <option value="all">Tutti gli Sport</option>
-                        {% for sport in sport_list %}
-                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                        {% endfor %}
-                    </select>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Categorie Registrate</span>
+                    <div class="d-flex align-items-center">
+                        <label class="me-2 mb-0">Filtra:</label>
+                        <select id="filterSport" class="form-select form-select-sm" style="min-width: 150px;">
+                            <option value="all">Tutti gli Sport</option>
+                            {% for sport in sport_list %}
+                                <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <div id="categorie-container" class="row row-cols-1 g-3">
-                    {% for categoria in sport_categorie %}
-                    <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
-                        <div class="card h-100 categoria-item">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <div class="mb-2">
-                                            <span class="badge bg-primary d-block mb-3">{{ categoria.sport_nome }}</span>
-                                            <h5 class="card-title mb-0 text-truncate" style="max-width: 180px;" title="{{ categoria.nome }}">{{ categoria.nome }}</h5>
+                <div class="card-body">
+                    <div id="categorie-container" class="row row-cols-1 g-3">
+                        {% for categoria in sport_categorie %}
+                        <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
+                            <div class="card h-100 categoria-item">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <div class="mb-2">
+                                                <span class="badge bg-primary d-block mb-3">{{ categoria.sport_nome }}</span>
+                                                <h5 class="card-title mb-0 text-truncate" style="max-width: 180px;" title="{{ categoria.nome }}">{{ categoria.nome }}</h5>
+                                            </div>
+                                            <div class="mt-2">
+                                                <strong class="text-success">{{ categoria.indennizzo }} CHF</strong>
+                                            </div>
                                         </div>
-                                        <div class="mt-2">
-                                            <strong class="text-success">{{ categoria.indennizzo }} CHF</strong>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex flex-column">
-                                        <button class="btn btn-sm btn-primary mb-2 edit-categoria-btn" data-bs-toggle="modal" data-bs-target="#editCategoriaModal" 
-                                                data-categoria-id="{{ categoria.id }}" 
-                                                data-categoria-nome="{{ categoria.nome }}" 
-                                                data-categoria-sport="{{ categoria.sport_id }}"
-                                                data-categoria-indennizzo="{{ categoria.indennizzo }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="/delete-categoria/{{ categoria.id }}" method="post" 
-                                              onsubmit="return confirm('Eliminare questa categoria?');">
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
+                                        <div class="d-flex flex-column">
+                                            <button class="btn btn-sm btn-primary mb-2 edit-categoria-btn" data-bs-toggle="modal" data-bs-target="#editCategoriaModal" 
+                                                    data-categoria-id="{{ categoria.id }}" 
+                                                    data-categoria-nome="{{ categoria.nome }}" 
+                                                    data-categoria-sport="{{ categoria.sport_id }}"
+                                                    data-categoria-indennizzo="{{ categoria.indennizzo }}">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="/delete-categoria/{{ categoria.id }}" method="post" 
+                                                  onsubmit="return confirm('Eliminare questa categoria?');">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -342,64 +271,28 @@
 
     <!-- Modale per modifica Sport -->
     <div class="modal fade" id="editSportModal" tabindex="-1" aria-labelledby="editSportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
-                <h5 class="modal-title" id="editSportModalLabel">Modifica Sport</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editSportForm" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Nome Sport</label>
-                        <input type="text" name="nome" id="editSportName" class="form-control" required>
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-                    </div>
-                </form>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                    <h5 class="modal-title" id="editSportModalLabel">Modifica Sport</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editSportForm" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Nome Sport</label>
+                            <input type="text" name="nome" id="editSportName" class="form-control" required>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
+                            <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
     </div>
 
-    <!-- Modale per modifica Categoria -->
-    <div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
-                <h5 class="modal-title" id="editCategoriaModalLabel">Modifica Categoria</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editCategoriaForm" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Sport</label>
-                        <select name="sport_id" id="editCategoriaSport" class="form-select" required>
-                            <option value="">Seleziona Sport</option>
-                            {% for sport in sport_list %}
-                                <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nome Categoria</label>
-                        <input type="text" name="nome_categoria" id="editCategoriaNome" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Indennizzo (CHF)</label>
-                        <input type="number" name="indennizzo" id="editCategoriaIndennizzo" class="form-control" step="0.01" required>
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    </div>
     <!-- Modale per modifica Categoria -->
     <div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -442,74 +335,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
     <script>
-        // Gestione del filtro per categorie
         document.addEventListener('DOMContentLoaded', function() {
+            // Variabili elementi DOM
             const filterSport = document.getElementById('filterSport');
             const categorieCards = document.querySelectorAll('.categoria-card');
+            const categorieContainer = document.getElementById('categorie-container');
             
-            // Funzione per mostrare/nascondere le categorie in base allo sport selezionato
+            // Funzione per filtrare categorie
             function filterCategories(sportId) {
                 let visibleCount = 0;
-                
                 categorieCards.forEach(card => {
-                    if (sportId === 'all' || card.dataset.sportId === sportId) {
-                        card.classList.remove('d-none');
-                        visibleCount++;
-                    } else {
-                        card.classList.add('d-none');
-                    }
+                    const isVisible = sportId === 'all' || card.dataset.sportId === sportId;
+                    card.classList.toggle('d-none', !isVisible);
+                    if (isVisible) visibleCount++;
                 });
                 
-                // Mostra un messaggio se non ci sono categorie
-                const container = document.getElementById('categorie-container');
-                const noResultsMsg = document.getElementById('no-categories-message');
-                
+                // Gestione messaggio "nessun risultato"
+                let noResultsMsg = document.getElementById('no-categories-message');
                 if (visibleCount === 0) {
                     if (!noResultsMsg) {
-                        const message = document.createElement('div');
-                        message.id = 'no-categories-message';
-                        message.className = 'col-12 text-center py-4';
-                        message.innerHTML = '<p class="text-muted">Nessuna categoria trovata per questo sport.</p>';
-                        container.appendChild(message);
+                        noResultsMsg = document.createElement('div');
+                        noResultsMsg.id = 'no-categories-message';
+                        noResultsMsg.className = 'col-12 text-center py-4';
+                        noResultsMsg.innerHTML = '<p class="text-muted">Nessuna categoria trovata per questo sport.</p>';
+                        categorieContainer.appendChild(noResultsMsg);
                     }
                 } else if (noResultsMsg) {
                     noResultsMsg.remove();
                 }
             }
             
-            // Listener per il cambio del filtro
+            // Listener ed eventi
             filterSport.addEventListener('change', function() {
                 filterCategories(this.value);
-                
-                // Salva la selezione del filtro nel localStorage
                 localStorage.setItem('selectedSportFilter', this.value);
             });
             
-            // Ripristina l'ultimo filtro selezionato (se presente)
+            // Inizializzazione
             const lastSelectedFilter = localStorage.getItem('selectedSportFilter');
-            if (lastSelectedFilter) {
-                filterSport.value = lastSelectedFilter;
-            }
-            
-            // Inizializza il filtro alla prima apertura
+            if (lastSelectedFilter) filterSport.value = lastSelectedFilter;
             filterCategories(filterSport.value);
             
-            // Animazione per le card al caricamento
-            const cards = document.querySelectorAll('.categoria-item');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                }, index * 50);
+            // Animazione card
+            document.querySelectorAll('.categoria-item').forEach((card, index) => {
+                setTimeout(() => card.style.opacity = '1', index * 50);
             });
             
-            // Assicuriamoci che i titoli troppo lunghi abbiano il tooltip
-            const truncatedTexts = document.querySelectorAll('.text-truncate');
-            truncatedTexts.forEach(element => {
-                const fullText = element.textContent;
-                element.setAttribute('title', fullText);
+            // Tooltips per testi troncati
+            document.querySelectorAll('.text-truncate').forEach(element => {
+                element.setAttribute('title', element.textContent);
             });
             
-            // Aggiorniamo il form di eliminazione per includere la categoria id nel form
+            // Preparazione form eliminazione
             document.querySelectorAll('form[action^="/delete-categoria/"]').forEach(form => {
                 const categoriaId = form.action.split('/').pop();
                 const hiddenInput = document.createElement('input');
@@ -518,61 +395,46 @@
                 hiddenInput.value = categoriaId;
                 form.appendChild(hiddenInput);
             });
+            
+            // Gestione sport selector
+            const sportSelector = document.querySelector('select[name="sport_id"]');
+            if (sportSelector) {
+                sportSelector.addEventListener('change', e => console.log('Sport selezionato:', e.target.value));
+            }
+            
+            // Conferma eliminazione
+            document.querySelectorAll('form[action^="/delete-"]').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const isCategory = form.action.includes('delete-categoria');
+                    const confirmMessage = isCategory ? 
+                        'Sei sicuro di voler eliminare questa categoria?' : 
+                        'Sei sicuro di voler eliminare questo sport? Tutte le categorie associate saranno eliminate.';
+                    
+                    if (!confirm(confirmMessage)) e.preventDefault();
+                });
+            });
+            
+            // Gestione modali
+            const sportModal = document.getElementById('editSportModal');
+            if(sportModal) {
+                sportModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    document.getElementById('editSportName').value = button.getAttribute('data-sport-name');
+                    document.getElementById('editSportForm').action = `/update-sport/${button.getAttribute('data-sport-id')}`;
+                });
+            }
+            
+            const categoriaModal = document.getElementById('editCategoriaModal');
+            if(categoriaModal) {
+                categoriaModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    document.getElementById('editCategoriaNome').value = button.getAttribute('data-categoria-nome');
+                    document.getElementById('editCategoriaSport').value = button.getAttribute('data-categoria-sport');
+                    document.getElementById('editCategoriaIndennizzo').value = button.getAttribute('data-categoria-indennizzo');
+                    document.getElementById('editCategoriaForm').action = `/update-categoria/${button.getAttribute('data-categoria-id')}`;
+                });
+            }
         });
-        
-        // Gestione del form di categoria
-        const sportSelector = document.querySelector('select[name="sport_id"]');
-        if (sportSelector) {
-            sportSelector.addEventListener('change', (e) => {
-                // Qui puoi aggiungere logica specifica se necessario per il backend
-                console.log('Sport selezionato: ', e.target.value);
-            });
-        }
-        
-        // Conferma eliminazione
-        const deleteForms = document.querySelectorAll('form[action^="/delete-"]');
-        deleteForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                const isCategory = form.action.includes('delete-categoria');
-                const confirmMessage = isCategory ? 
-                    'Sei sicuro di voler eliminare questa categoria?' : 
-                    'Sei sicuro di voler eliminare questo sport? Tutte le categorie associate saranno eliminate.';
-                
-                if (!confirm(confirmMessage)) {
-                    e.preventDefault();
-                }
-            });
-        });
-
-        // Gestione modali
-        const sportModal = document.getElementById('editSportModal');
-        if(sportModal) {
-            sportModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const sportId = button.getAttribute('data-sport-id');
-                const sportName = button.getAttribute('data-sport-name');
-                
-                document.getElementById('editSportName').value = sportName;
-                document.getElementById('editSportForm').action = `/update-sport/${sportId}`;
-            });
-        }
-        
-        const categoriaModal = document.getElementById('editCategoriaModal');
-        if(categoriaModal) {
-            categoriaModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const categoriaId = button.getAttribute('data-categoria-id');
-                const categoriaNome = button.getAttribute('data-categoria-nome');
-                const categoriaSport = button.getAttribute('data-categoria-sport');
-                const categoriaIndennizzo = button.getAttribute('data-categoria-indennizzo');
-                
-                document.getElementById('editCategoriaNome').value = categoriaNome;
-                document.getElementById('editCategoriaSport').value = categoriaSport;
-                document.getElementById('editCategoriaIndennizzo').value = categoriaIndennizzo;
-                document.getElementById('editCategoriaForm').action = `/update-categoria/${categoriaId}`;
-            });
-        }
-
     </script>
 </body>
 </html>
