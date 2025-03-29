@@ -315,36 +315,6 @@ def delete_categoria(id: int):
     return RedirectResponse("/gestione-sport", status_code=303)
 
 # ---------------------------
-# Endpoint per modificare una categoria
-# ---------------------------
-@app.get("/edit-categoria/{id}")
-def edit_categoria_form(request: Request, id: int):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Recupera i dettagli della categoria specifica
-    cursor.execute("""
-        SELECT categorie.*, sport.nome as sport_nome 
-        FROM categorie 
-        JOIN sport ON categorie.sport_id = sport.id 
-        WHERE categorie.id = ?
-    """, (id,))
-    categoria = dict(cursor.fetchone())
-    
-    # Recupera la lista degli sport
-    cursor.execute("SELECT * FROM sport ORDER BY nome")
-    sport_list = cursor.fetchall()
-    
-    conn.close()
-    
-    return templates.TemplateResponse("gestione-sport.html", {
-        "request": request,
-        "categoria_edit": categoria,
-        "sport_list": sport_list
-    })
-
-# ---------------------------
 # Endpoint per aggiornare una categoria
 # ---------------------------
 @app.post("/update-categoria/{id}")
@@ -357,7 +327,7 @@ def update_categoria(
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Aggiorna la categoria nel database (senza tipo_gara)
+    # Aggiorna la categoria nel database
     cursor.execute("""
         UPDATE categorie 
         SET sport_id = ?, nome = ?, indennizzo = ? 
@@ -369,60 +339,13 @@ def update_categoria(
     
     # Reindirizza alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
-# ---------------------------
-# Endpoint per modificare uno sport
-# ---------------------------
-@app.get("/edit-sport/{id}")
-def edit_sport_form(request: Request, id: int):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Recupera i dettagli dello sport specifico
-    cursor.execute("SELECT * FROM sport WHERE id = ?", (id,))
-    sport = dict(cursor.fetchone())
-    
-    # Recupera la lista completa degli sport
-    cursor.execute("SELECT * FROM sport ORDER BY nome")
-    sport_list = [dict(row) for row in cursor.fetchall()]
-    
-    # Recupera tutte le categorie
-    cursor.execute("""SELECT categorie.*, sport.nome as sport_nome FROM categorie
-                   JOIN sport ON categorie.sport_id = sport.id
-                   ORDER BY sport.nome, categorie.nome""")
-    sport_categorie = [dict(row) for row in cursor.fetchall()]
-    
-    conn.close()
-    
-    return templates.TemplateResponse("gestione-sport.html", {
-        "request": request,
-        "sport_edit": sport,
-        "sport_list": sport_list,
-        "sport_categorie": sport_categorie
-    })
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Recupera i dettagli dello sport specifico
-    cursor.execute("SELECT * FROM sport WHERE id = ?", (id,))
-    sport = dict(cursor.fetchone())
-    
-    conn.close()
-    
-    return templates.TemplateResponse("gestione-sport.html", {
-        "request": request,
-        "sport_edit": sport
-    })
+
 
 # ---------------------------
 # Endpoint per aggiornare uno sport
 # ---------------------------
 @app.post("/update-sport/{id}")
-def update_sport(
-    id: int,
-    nome: str = Form(...)
-):
+def update_sport(id: int, nome: str = Form(...)):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     

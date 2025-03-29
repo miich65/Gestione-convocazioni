@@ -250,52 +250,6 @@
             </div>
         </div>
 
-        <!-- Form Aggiunta/Modifica Categoria -->
-        <div class="col-md-6">
-        <div class="card mb-4">
-        <div class="card-header">
-            {% if categoria_edit is defined %}
-                Modifica Categoria
-            {% else %}
-                Aggiungi Nuova Categoria
-            {% endif %}
-        </div>
-        <div class="card-body">
-            <form action="{% if categoria_edit is defined %}/update-categoria/{{ categoria_edit.id }}{% else %}/add-categoria{% endif %}" method="post">
-                <div class="mb-3">
-                    <label class="form-label">Sport</label>
-                    <select name="sport_id" class="form-select" required>
-                        <option value="">Seleziona Sport</option>
-                        {% for sport in sport_list %}
-                            <option value="{{ sport.id }}" 
-                                {% if categoria_edit is defined and categoria_edit.sport_id == sport.id %}selected{% endif %}>
-                                {{ sport.nome }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Nome Categoria</label>
-                    <input type="text" name="nome_categoria" class="form-control" 
-                            value="{{ categoria_edit.nome if categoria_edit is defined else '' }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Indennizzo (CHF)</label>
-                    <input type="number" name="indennizzo" class="form-control" step="0.01" 
-                            value="{{ categoria_edit.indennizzo if categoria_edit is defined else '' }}" required>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    {% if categoria_edit is defined %}Aggiorna{% else %}Aggiungi{% endif %}
-                </button>
-                {% if categoria_edit is defined %}
-                    <a href="/gestione-sport" class="btn btn-secondary ms-2">Annulla</a>
-                {% endif %}
-            </form>
-        </div>
-        </div>
-        </div>
-    </div>
-
     <!-- Elenco Sport e Categorie -->
     <div class="row">
         <div class="col-md-6">
@@ -386,11 +340,8 @@
         </div>
     </div>
 
-
-    <!-- Aggiungi questi modali alla fine del body, prima degli script -->
-
-<!-- Modale per modifica Sport -->
-<div class="modal fade" id="editSportModal" tabindex="-1" aria-labelledby="editSportModalLabel" aria-hidden="true">
+    <!-- Modale per modifica Sport -->
+    <div class="modal fade" id="editSportModal" tabindex="-1" aria-labelledby="editSportModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background-color: var(--primary-color); color: white;">
@@ -411,7 +362,7 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 
     <!-- Modale per modifica Categoria -->
     <div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
