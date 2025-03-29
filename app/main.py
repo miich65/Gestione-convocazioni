@@ -285,20 +285,21 @@ def add_sport(nome: str = Form(...)):
 @app.post("/add-categoria")
 def add_categoria(
     sport_id: int = Form(...),          # ID dello sport a cui appartiene la categoria
-    nome_categoria: str = Form(...),   # Nome della categoria
-    tipo_gara: str = Form(...),        # Tipo di gara (es. Regular season)
-    indennizzo: float = Form(...)      # Indennizzo per la categoria
+    nome_categoria: str = Form(...),    # Nome della categoria
+    indennizzo: float = Form(...)       # Indennizzo per la categoria
 ):
     # Connessione al database e inserimento della nuova categoria
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''INSERT INTO categorie (sport_id, nome, tipo_gara, indennizzo)
-                      VALUES (?, ?, ?, ?)''', (sport_id, nome_categoria, tipo_gara, indennizzo))
+    
+    # Modifica la query SQL per rimuovere tipo_gara
+    cursor.execute('''INSERT INTO categorie (sport_id, nome, indennizzo)
+                      VALUES (?, ?, ?)''', (sport_id, nome_categoria, indennizzo))
+    
     conn.commit()
     conn.close()
     # Reindirizzamento alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
-
 # ---------------------------
 # Endpoint per eliminare una categoria
 # ---------------------------
@@ -351,30 +352,54 @@ def update_categoria(
     id: int,
     sport_id: int = Form(...),
     nome_categoria: str = Form(...),
-    tipo_gara: str = Form(...),
     indennizzo: float = Form(...)
 ):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Aggiorna la categoria nel database
+    # Aggiorna la categoria nel database (senza tipo_gara)
     cursor.execute("""
         UPDATE categorie 
-        SET sport_id = ?, nome = ?, tipo_gara = ?, indennizzo = ? 
+        SET sport_id = ?, nome = ?, indennizzo = ? 
         WHERE id = ?
-    """, (sport_id, nome_categoria, tipo_gara, indennizzo, id))
+    """, (sport_id, nome_categoria, indennizzo, id))
     
     conn.commit()
     conn.close()
     
     # Reindirizza alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
-
 # ---------------------------
 # Endpoint per modificare uno sport
 # ---------------------------
 @app.get("/edit-sport/{id}")
 def edit_sport_form(request: Request, id: int):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Recupera i dettagli dello sport specifico
+    cursor.execute("SELECT * FROM sport WHERE id = ?", (id,))
+    sport = dict(cursor.fetchone())
+    
+    # Recupera la lista completa degli sport
+    cursor.execute("SELECT * FROM sport ORDER BY nome")
+    sport_list = [dict(row) for row in cursor.fetchall()]
+    
+    # Recupera tutte le categorie
+    cursor.execute("""SELECT categorie.*, sport.nome as sport_nome FROM categorie
+                   JOIN sport ON categorie.sport_id = sport.id
+                   ORDER BY sport.nome, categorie.nome""")
+    sport_categorie = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return templates.TemplateResponse("gestione-sport.html", {
+        "request": request,
+        "sport_edit": sport,
+        "sport_list": sport_list,
+        "sport_categorie": sport_categorie
+    })
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
