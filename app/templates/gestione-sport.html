@@ -201,25 +201,50 @@
         <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">
-                    {% if sport_edit is defined %}
-                        Modifica Sport
-                    {% else %}
-                        Aggiungi Nuovo Sport
-                    {% endif %}
+                    Aggiungi Nuovo Sport
                 </div>
                 <div class="card-body">
-                    <form action="{% if sport_edit is defined %}/update-sport/{{ sport_edit.id }}{% else %}/add-sport{% endif %}" method="post">
+                    <form action="/add-sport" method="post">
                         <div class="mb-3">
                             <label class="form-label">Nome Sport</label>
-                            <input type="text" name="nome" class="form-control" 
-                                   value="{{ sport_edit.nome if sport_edit is defined else '' }}" required>
+                            <input type="text" name="nome" class="form-control" required>
                         </div>
                         <button type="submit" class="btn btn-primary">
-                            {% if sport_edit is defined %}Aggiorna{% else %}Aggiungi{% endif %}
+                            Aggiungi
                         </button>
-                        {% if sport_edit is defined %}
-                            <a href="/gestione-sport" class="btn btn-secondary ms-2">Annulla</a>
-                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Aggiunta Categoria -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Aggiungi Nuova Categoria
+                </div>
+                <div class="card-body">
+                    <form action="/add-categoria" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Sport</label>
+                            <select name="sport_id" class="form-select" required>
+                                <option value="">Seleziona Sport</option>
+                                {% for sport in sport_list %}
+                                    <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nome Categoria</label>
+                            <input type="text" name="nome_categoria" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Indennizzo (CHF)</label>
+                            <input type="number" name="indennizzo" class="form-control" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Aggiungi
+                        </button>
                     </form>
                 </div>
             </div>
@@ -289,9 +314,9 @@
                             <tr>
                                 <td>{{ sport.nome }}</td>
                                 <td>
-                                    <a href="/edit-sport/{{ sport.id }}" class="btn btn-sm btn-primary">
+                                    <button class="btn btn-sm btn-primary edit-sport-btn" data-bs-toggle="modal" data-bs-target="#editSportModal" data-sport-id="{{ sport.id }}" data-sport-name="{{ sport.nome }}">
                                         <i class="fas fa-edit"></i>
-                                    </a>
+                                    </button>
                                     <form action="/delete-sport/{{ sport.id }}" method="post" class="d-inline" 
                                           onsubmit="return confirm('Eliminare questo sport?');">
                                         <button type="submit" class="btn btn-sm btn-danger">
@@ -337,9 +362,13 @@
                                         </div>
                                     </div>
                                     <div class="d-flex flex-column">
-                                        <a href="/edit-categoria/{{ categoria.id }}" class="btn btn-sm btn-primary mb-2">
+                                        <button class="btn btn-sm btn-primary mb-2 edit-categoria-btn" data-bs-toggle="modal" data-bs-target="#editCategoriaModal" 
+                                                data-categoria-id="{{ categoria.id }}" 
+                                                data-categoria-nome="{{ categoria.nome }}" 
+                                                data-categoria-sport="{{ categoria.sport_id }}"
+                                                data-categoria-indennizzo="{{ categoria.indennizzo }}">
                                             <i class="fas fa-edit"></i>
-                                        </a>
+                                        </button>
                                         <form action="/delete-categoria/{{ categoria.id }}" method="post" 
                                               onsubmit="return confirm('Eliminare questa categoria?');">
                                             <button type="submit" class="btn btn-sm btn-danger">
@@ -358,6 +387,104 @@
     </div>
 
 
+    <!-- Aggiungi questi modali alla fine del body, prima degli script -->
+
+<!-- Modale per modifica Sport -->
+<div class="modal fade" id="editSportModal" tabindex="-1" aria-labelledby="editSportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="editSportModalLabel">Modifica Sport</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSportForm" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Nome Sport</label>
+                        <input type="text" name="nome" id="editSportName" class="form-control" required>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Modale per modifica Categoria -->
+    <div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="editCategoriaModalLabel">Modifica Categoria</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoriaForm" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Sport</label>
+                        <select name="sport_id" id="editCategoriaSport" class="form-select" required>
+                            <option value="">Seleziona Sport</option>
+                            {% for sport in sport_list %}
+                                <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nome Categoria</label>
+                        <input type="text" name="nome_categoria" id="editCategoriaNome" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Indennizzo (CHF)</label>
+                        <input type="number" name="indennizzo" id="editCategoriaIndennizzo" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- Modale per modifica Categoria -->
+    <div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                    <h5 class="modal-title" id="editCategoriaModalLabel">Modifica Categoria</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoriaForm" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Sport</label>
+                            <select name="sport_id" id="editCategoriaSport" class="form-select" required>
+                                <option value="">Seleziona Sport</option>
+                                {% for sport in sport_list %}
+                                    <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nome Categoria</label>
+                            <input type="text" name="nome_categoria" id="editCategoriaNome" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Indennizzo (CHF)</label>
+                            <input type="number" name="indennizzo" id="editCategoriaIndennizzo" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
+                            <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap 5 JS and Popper -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -465,6 +592,36 @@
                 }
             });
         });
+
+        // Gestione modali
+        const sportModal = document.getElementById('editSportModal');
+        if(sportModal) {
+            sportModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const sportId = button.getAttribute('data-sport-id');
+                const sportName = button.getAttribute('data-sport-name');
+                
+                document.getElementById('editSportName').value = sportName;
+                document.getElementById('editSportForm').action = `/update-sport/${sportId}`;
+            });
+        }
+        
+        const categoriaModal = document.getElementById('editCategoriaModal');
+        if(categoriaModal) {
+            categoriaModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const categoriaId = button.getAttribute('data-categoria-id');
+                const categoriaNome = button.getAttribute('data-categoria-nome');
+                const categoriaSport = button.getAttribute('data-categoria-sport');
+                const categoriaIndennizzo = button.getAttribute('data-categoria-indennizzo');
+                
+                document.getElementById('editCategoriaNome').value = categoriaNome;
+                document.getElementById('editCategoriaSport').value = categoriaSport;
+                document.getElementById('editCategoriaIndennizzo').value = categoriaIndennizzo;
+                document.getElementById('editCategoriaForm').action = `/update-categoria/${categoriaId}`;
+            });
+        }
+
     </script>
 </body>
 </html>
