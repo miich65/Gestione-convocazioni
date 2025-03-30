@@ -1,0 +1,119 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --background-light: #f4f6f7;
+}
+
+body {
+    background-color: var(--background-light);
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+}
+
+.categoria-item {
+    opacity: 0;
+    transition: all 0.3s ease, opacity 0.6s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.categoria-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.btn-primary, .btn-success {
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.table thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#filterSport {
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background-color: rgba(255,255,255,0.9);
+    padding-right: 30px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .card-body { padding: 1rem; }
+    .form-control, .form-select { font-size: 14px; }
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    .card-header .d-flex {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+    #filterSport {
+        width: 100%;
+        max-width: 200px;
+    }
+    .badge { font-size: 0.7rem; }
+    .card-title.text-truncate { max-width: 120px !important; }
+}
