@@ -61,38 +61,50 @@ def form_post(
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
-    categoria: str = Form(...),
+    categoria: str = Form(...),  # Assicurati che questo campo sia obbligatorio nel form
     tipo_gara: str = Form(...),
     squadre: str = Form(...),
     luogo: str = Form(...),
     trasferta: float = Form(0.0),
-    indennizzo: float = Form(...),
+    indennizzo: float = Form(0.0),  # Imposta un valore di default
     note: str = Form("")
 ):
     """Salva una nuova convocazione"""
     conn = sqlite3.connect("app/data/convocazioni.db")
     cursor = conn.cursor()
 
-    # Salva la convocazione
-    cursor.execute('''
-        INSERT INTO convocazioni (
+    try:
+        # Salva la convocazione
+        cursor.execute('''
+            INSERT INTO convocazioni (
+                data_inizio, orario_partenza, sport, categoria, 
+                tipo_gara, squadre, luogo, trasferta, indennizzo, note
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
             data_inizio, orario_partenza, sport, categoria, 
             tipo_gara, squadre, luogo, trasferta, indennizzo, note
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        data_inizio, orario_partenza, sport, categoria, 
-        tipo_gara, squadre, luogo, trasferta, indennizzo, note
-    ))
+        ))
 
-    # Recupera gli sport per ricaricare il form
-    cursor.execute("SELECT * FROM sport ORDER BY nome")
-    sport_list = [dict(row) for row in cursor.fetchall()]
+        # Recupera gli sport per ricaricare il form
+        cursor.execute("SELECT * FROM sport ORDER BY nome")
+        sport_list = [dict(row) for row in cursor.fetchall()]
 
-    cursor.execute("SELECT * FROM categorie")
-    categorie = cursor.fetchall()
+        cursor.execute("SELECT * FROM categorie")
+        categorie = cursor.fetchall()
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    except Exception as e:
+        print(f"Errore durante l'inserimento: {e}")
+        conn.rollback()
+        # Gestisci l'errore, magari restituendo un messaggio
+        return templates.TemplateResponse("form.html", {
+            "request": request,
+            "error": str(e),
+            "sport_list": sport_list,
+            "categorie_json": categorie_by_sport
+        })
+    finally:
+        conn.close()
 
     # Ricostruisci il dizionario delle categorie
     categorie_by_sport = {}

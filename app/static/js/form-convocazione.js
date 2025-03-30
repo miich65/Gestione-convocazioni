@@ -11,17 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate categories based on selected sport
     sportSelect.addEventListener("change", () => {
         const sportId = sportSelect.value;
-        
-        // Reset categoria select
         categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
         categoriaSelect.disabled = true;
         indennizzoField.value = "";
-
-        // Populate categories for selected sport
+    
         if (categorieBySport[sportId]) {
             categorieBySport[sportId].forEach(cat => {
                 const option = document.createElement("option");
-                option.value = cat.nome;
+                option.value = cat.nome;  // Usa il nome della categoria
                 option.dataset.indennizzo = cat.indennizzo;
                 option.textContent = cat.nome;
                 categoriaSelect.appendChild(option);
@@ -30,8 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             categoriaSelect.disabled = false;
         }
     });
-
-    // Update indennizzo when category is selected
+    
     categoriaSelect.addEventListener("change", () => {
         const selectedOption = categoriaSelect.selectedOptions[0];
         if (selectedOption) {
