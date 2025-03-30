@@ -1,58 +1,124 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid sport-management-wrapper">
-    <div class="row">
-        <div class="col-md-6">
-            <!-- Aggiunta Sport -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-plus-circle me-2"></i>Aggiungi Nuovo Sport
-                    </h5>
+<div class="container-fluid form-convocazione-wrapper mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h1 class="display-6 mb-0">
+                        <i class="bi bi-calendar-plus me-2"></i>Nuova Convocazione
+                    </h1>
                 </div>
-                <div class="card-body">
-                    <form action="/add-sport" method="post">
-                        <div class="input-group">
-                            <input type="text" name="nome" class="form-control" placeholder="Nome dello sport" required>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-2"></i>Aggiungi
-                            </button>
+                <div class="card-body p-5">
+                    {% if msg %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Aggiunta Categoria -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-layers me-2"></i>Aggiungi Nuova Categoria
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form action="/add-categoria" method="post">
-                        <div class="row g-3">
+                    {% endif %}
+
+                    <!-- Aggiungi qui il contenitore nascosto per i dati delle categorie -->
+                    <script id="categorieData" type="application/json">
+                        {{ categorie_json | tojson }}
+                    </script>
+
+                    <form id="convocazioneForm" action="/add" method="post" novalidate>
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <select name="sport_id" class="form-select" required>
-                                    <option value="">Seleziona Sport</option>
-                                    {% for sport in sport_list %}
-                                        <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <input type="text" name="nome_categoria" class="form-control" placeholder="Nome Categoria" required>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">CHF</span>
-                                    <input type="number" name="indennizzo" class="form-control" placeholder="Indennizzo" step="0.01" required>
+                                <div class="form-floating">
+                                    <input type="datetime-local" class="form-control" id="dataInizio" name="data_inizio" required>
+                                    <label for="dataInizio">Data e ora partita</label>
+                                    <div class="invalid-feedback">Seleziona data e ora</div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-6">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-save me-2"></i>Aggiungi Categoria
+                                <div class="form-floating">
+                                    <input type="time" class="form-control" id="orarioPartenza" name="orario_partenza" required>
+                                    <label for="orarioPartenza">Ora partenza</label>
+                                    <div class="invalid-feedback">Seleziona ora partenza</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select id="sportSelect" name="sport" class="form-select" required>
+                                        <option value="">Seleziona sport</option>
+                                        {% for sport in sport_list %}
+                                            <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="sportSelect">Sport</label>
+                                    <div class="invalid-feedback">Scegli uno sport</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select id="categoriaSelect" name="categoria" class="form-select" required disabled>
+                                        <option value="">Seleziona categoria</option>
+                                    </select>
+                                    <label for="categoriaSelect">Categoria</label>
+                                    <div class="invalid-feedback">Scegli una categoria</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select name="tipo_gara" class="form-select" required>
+                                        <option value="">Seleziona tipo gara</option>
+                                        <option value="Regular season">Regular season</option>
+                                        <option value="Playoff">Playoff</option>
+                                        <option value="Playout">Playout</option>
+                                        <option value="Masterround">Masterround</option>
+                                        <option value="Amichevole">Amichevole</option>
+                                    </select>
+                                    <label>Tipo Gara</label>
+                                    <div class="invalid-feedback">Scegli il tipo di gara</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" step="0.01" name="indennizzo" id="indennizzoField" class="form-control" readonly required>
+                                    <label for="indennizzoField">Indennizzo (CHF)</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" step="0.01" name="trasferta" class="form-control" placeholder="Opzionale">
+                                    <label>Trasferta (CHF)</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" name="squadre" class="form-control" placeholder="Team A vs Team B" required>
+                                    <label>Squadre</label>
+                                    <div class="invalid-feedback">Inserisci le squadre</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" name="luogo" class="form-control" placeholder="Via e città" required>
+                                    <label>Luogo</label>
+                                    <div class="invalid-feedback">Inserisci il luogo</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea name="note" class="form-control" placeholder="Note aggiuntive" style="height: 100px"></textarea>
+                                    <label>Note</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-save me-2"></i>Salva convocazione
                                 </button>
                             </div>
                         </div>
@@ -60,122 +126,10 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6">
-            <!-- Sport Registrati -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-trophy me-2"></i>Sport Registrati
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Sport</th>
-                                    <th>Partite Totali</th>
-                                    <th>Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sport in sport_list %}
-                                <tr>
-                                    <td>{{ sport.nome }}</td>
-                                    <td>
-                                        <span class="badge bg-primary">
-                                            {{ sport.partite_totali or 0 }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary edit-sport-btn" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editSportModal" 
-                                                    data-sport-id="{{ sport.id }}" 
-                                                    data-sport-name="{{ sport.nome }}">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <form action="/delete-sport/{{ sport.id }}" method="post" class="d-inline" 
-                                                  onsubmit="return confirm('Eliminare questo sport?');">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Categorie Registrate -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-layers me-2"></i>Categorie Registrate
-                    </h5>
-                    <select id="filterSport" class="form-select form-select-sm" style="width: auto;">
-                        <option value="all">Tutti gli Sport</option>
-                        {% for sport in sport_list %}
-                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="card-body">
-                    <div id="categorie-container" class="row row-cols-1 g-3">
-                        {% for categoria in sport_categorie %}
-                        <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
-                            <div class="card h-100 categoria-item">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <span class="badge bg-primary mb-2">{{ categoria.sport_nome }}</span>
-                                            <h6 class="card-title mb-1">{{ categoria.nome }}</h6>
-                                            <div class="small text-muted">
-                                                <strong class="text-success">
-                                                    <i class="bi bi-cash-coin me-1"></i>
-                                                    {{ categoria.indennizzo }} CHF
-                                                </strong>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group-vertical" role="group">
-                                            <button class="btn btn-sm btn-outline-primary edit-categoria-btn mb-1" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editCategoriaModal" 
-                                                    data-categoria-id="{{ categoria.id }}" 
-                                                    data-categoria-nome="{{ categoria.nome }}" 
-                                                    data-categoria-sport="{{ categoria.sport_id }}"
-                                                    data-categoria-indennizzo="{{ categoria.indennizzo }}">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <form action="/delete-categoria/{{ categoria.id }}" method="post" 
-                                                  onsubmit="return confirm('Eliminare questa categoria?');">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-
-    <!-- Modali (mantenuti come nel template originale) -->
-    {% include 'partials/modali_gestione_sport.html' %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/gestione-sport.js"></script>
+<script src="/static/js/form-convocazione.js"></script>
 {% endblock %}

@@ -1,72 +1,87 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Parse categories from server-side
-    const categorieBySport = JSON.parse('{{ categorie_json|tojson|safe }}');
-    
-    // Select elements
-    const sportSelect = document.getElementById("sportSelect");
-    const categoriaSelect = document.getElementById("categoriaSelect");
-    const indennizzoField = document.getElementById("indennizzoField");
+    // Riferimenti agli elementi del form
+    const sportSelect = document.getElementById('sportSelect');
+    const categoriaSelect = document.getElementById('categoriaSelect');
+    const indennizzoField = document.getElementById('indennizzoField');
+    const convocazioneForm = document.getElementById('convocazioneForm');
 
-    // Funzione per popolare le categorie
-    function populateCategories(sportId) {
-        // Resetta la select delle categorie
-        categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
-        categoriaSelect.disabled = false;
-        
-        // Se sono presenti categorie per questo sport
-        if (categorieBySport[sportId]) {
-            categorieBySport[sportId].forEach(cat => {
-                const option = document.createElement("option");
-                option.value = cat.nome;
-                option.dataset.indennizzo = cat.indennizzo;
-                option.textContent = cat.nome;
-                categoriaSelect.appendChild(option);
-            });
-        } else {
-            // Nessuna categoria disponibile
-            const option = document.createElement("option");
-            option.value = "";
-            option.textContent = "Nessuna categoria disponibile";
-            option.disabled = true;
-            categoriaSelect.appendChild(option);
-            categoriaSelect.disabled = true;
+    // Ottieni i dati delle categorie dal backend
+    // Cerca se abbiamo un elemento con id 'categorieData' che contiene i dati delle categorie
+    let categorieData = {};
+    const dataElement = document.getElementById('categorieData');
+    
+    if (dataElement) {
+        try {
+            categorieData = JSON.parse(dataElement.textContent);
+        } catch (e) {
+            console.error('Errore nel parsing dei dati delle categorie:', e);
         }
     }
 
-    // Listener per la selezione dello sport
-    sportSelect.addEventListener("change", () => {
+    // Funzione per popolare il dropdown delle categorie in base allo sport selezionato
+    function updateCategorieDropdown() {
+        // Pulisci il dropdown delle categorie
+        categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
+        
+        // Ottieni l'ID dello sport selezionato
         const sportId = sportSelect.value;
         
-        // Resetta l'indennizzo e la categoria
-        indennizzoField.value = "";
-        categoriaSelect.value = "";
-        
-        // Popola le categorie
-        if (sportId) {
-            populateCategories(sportId);
-        } else {
-            categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
+        if (!sportId) {
+            // Se nessuno sport è selezionato, disabilita il dropdown delle categorie
             categoriaSelect.disabled = true;
+            indennizzoField.value = '';
+            return;
+        }
+        
+        // Ottieni le categorie per lo sport selezionato
+        const categorie = categorieData[sportId] || [];
+        
+        if (categorie.length === 0) {
+            categoriaSelect.disabled = true;
+            return;
+        }
+        
+        // Popola il dropdown delle categorie
+        categorie.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria.nome;
+            option.textContent = categoria.nome;
+            option.dataset.indennizzo = categoria.indennizzo;
+            categoriaSelect.appendChild(option);
+        });
+        
+        // Abilita il dropdown delle categorie
+        categoriaSelect.disabled = false;
+    }
+
+    // Funzione per aggiornare l'indennizzo in base alla categoria selezionata
+    function updateIndennizzo() {
+        const selectedOption = categoriaSelect.options[categoriaSelect.selectedIndex];
+        
+        if (selectedOption && selectedOption.dataset.indennizzo) {
+            indennizzoField.value = selectedOption.dataset.indennizzo;
+        } else {
+            indennizzoField.value = '';
+        }
+    }
+
+    // Aggiungi i listener degli eventi
+    sportSelect.addEventListener('change', updateCategorieDropdown);
+    categoriaSelect.addEventListener('change', updateIndennizzo);
+
+    // Validazione del form
+    convocazioneForm.addEventListener('submit', function(event) {
+        if (!convocazioneForm.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Aggiungi la classe 'was-validated' per mostrare i messaggi di errore di Bootstrap
+            convocazioneForm.classList.add('was-validated');
         }
     });
 
-    // Listener per la selezione della categoria
-    categoriaSelect.addEventListener("change", () => {
-        const selectedOption = categoriaSelect.selectedOptions[0];
-        if (selectedOption && selectedOption.value !== "") {
-            indennizzoField.value = selectedOption.dataset.indennizzo || "";
-        }
-    });
-
-    // Imposta data di default
-    const dataInizioInput = document.getElementById('dataInizio');
-    const now = new Date();
-    const localDatetime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-        .toISOString().slice(0, 16);
-    dataInizioInput.value = localDatetime;
-
-    // Popola le categorie al caricamento se uno sport è già selezionato
+    // Inizializza il dropdown delle categorie se uno sport è già selezionato
     if (sportSelect.value) {
-        populateCategories(sportSelect.value);
+        updateCategorieDropdown();
     }
 });
