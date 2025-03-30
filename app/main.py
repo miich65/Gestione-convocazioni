@@ -22,7 +22,8 @@ app = FastAPI()
 # Configurazione del database SQLite
 # ---------------------------
 DB_PATH = "data/convocazioni.db"
-os.makedirs("data", exist_ok=True)  # Crea la cartella data se non esiste
+os.makedirs("data", exist_ok=True) 
+
 
 # ---------------------------
 # Connessione al database e creazione delle tabelle se non esistono
@@ -89,6 +90,9 @@ conn.close()
 # Configurazione delle statiche e dei template HTML
 # ---------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs("static/css", exist_ok=True)
+os.makedirs("static/js", exist_ok=True)
+
 templates = Jinja2Templates(directory="templates")
 
 # ---------------------------
