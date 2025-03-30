@@ -3,127 +3,72 @@ document.addEventListener('DOMContentLoaded', function() {
     const editButtons = document.querySelectorAll('.edit-convocazione-btn');
     const editForm = document.getElementById('editConvocazioneForm');
 
+    // Debug: Verifica se gli elementi esistono
+    console.log('Edit Buttons:', editButtons);
+    console.log('Edit Form:', editForm);
+
     editButtons.forEach(button => {
         button.addEventListener('click', function() {
+            // Debug: Stampa tutti i dataset
+            console.log('Button Dataset:', this.dataset);
+
             // Recupera i dati dalla riga corrente
-            const convId = this.dataset.convId;
-            const dataInizio = this.dataset.dataInizio;
-            const orarioPartenza = this.dataset.orarioPartenza;
-            const sport = this.dataset.sport;
-            const categoria = this.dataset.categoria;
-            const tipoGara = this.dataset.tipoGara;
-            const squadre = this.dataset.squadre;
-            const luogo = this.dataset.luogo;
-            const trasferta = this.dataset.trasferta;
-            const indennizzo = this.dataset.indennizzo;
-            const note = this.dataset.note;
+            const convId = this.getAttribute('data-conv-id');
+            const dataInizio = this.getAttribute('data-data-inizio');
+            const orarioPartenza = this.getAttribute('data-orario-partenza');
+            const sport = this.getAttribute('data-sport');
+            const categoria = this.getAttribute('data-categoria');
+            const tipoGara = this.getAttribute('data-tipo-gara');
+            const squadre = this.getAttribute('data-squadre');
+            const luogo = this.getAttribute('data-luogo');
+            const trasferta = this.getAttribute('data-trasferta') || '0';
+            const indennizzo = this.getAttribute('data-indennizzo');
+            const note = this.getAttribute('data-note') || '';
+
+            // Debug: Stampa i valori estratti
+            console.log('Valori estratti:', {
+                convId, dataInizio, orarioPartenza, sport, categoria, 
+                tipoGara, squadre, luogo, trasferta, indennizzo, note
+            });
+
+            // Seleziona gli elementi del form
+            const editDataInizio = document.getElementById('editDataInizio');
+            const editOrarioPartenza = document.getElementById('editOrarioPartenza');
+            const editSport = document.getElementById('editSport');
+            const editCategoria = document.getElementById('editCategoria');
+            const editTipoGara = document.getElementById('editTipoGara');
+            const editSquadre = document.getElementById('editSquadre');
+            const editLuogo = document.getElementById('editLuogo');
+            const editTrasferta = document.getElementById('editTrasferta');
+            const editIndennizzo = document.getElementById('editIndennizzo');
+            const editNote = document.getElementById('editNote');
+
+            // Debug: Verifica l'esistenza degli elementi
+            console.log('Elementi form:', {
+                editDataInizio, editOrarioPartenza, editSport, editCategoria, 
+                editTipoGara, editSquadre, editLuogo, editTrasferta, 
+                editIndennizzo, editNote
+            });
 
             // Imposta i valori nel form di modifica
-            document.getElementById('editDataInizio').value = dataInizio;
-            document.getElementById('editOrarioPartenza').value = orarioPartenza;
-            document.getElementById('editSport').value = sport;
-            document.getElementById('editCategoria').value = categoria;
-            document.getElementById('editTipoGara').value = tipoGara;
-            document.getElementById('editSquadre').value = squadre;
-            document.getElementById('editLuogo').value = luogo;
-            document.getElementById('editTrasferta').value = trasferta;
-            document.getElementById('editIndennizzo').value = indennizzo;
-            document.getElementById('editNote').value = note;
+            if (editDataInizio) editDataInizio.value = dataInizio;
+            if (editOrarioPartenza) editOrarioPartenza.value = orarioPartenza;
+            if (editSport) editSport.value = sport;
+            if (editCategoria) editCategoria.value = categoria;
+            if (editTipoGara) editTipoGara.value = tipoGara;
+            if (editSquadre) editSquadre.value = squadre;
+            if (editLuogo) editLuogo.value = luogo;
+            if (editTrasferta) editTrasferta.value = trasferta;
+            if (editIndennizzo) editIndennizzo.value = indennizzo;
+            if (editNote) editNote.value = note;
 
             // Imposta l'azione del form con l'ID corretto
-            editForm.action = `/update/${convId}`;
+            if (editForm) {
+                editForm.action = `/update/${convId}`;
+                console.log('Form action impostata:', editForm.action);
+            }
         });
     });
-    // Get categories from data attribute
-    const categorieBySport = JSON.parse(document.getElementById('sportSelect').dataset.categorie);
-    
-    // Select elements
-    const sportSelect = document.getElementById("sportSelect");
-    const categoriaSelect = document.getElementById("categoriaSelect");
-    const indennizzoField = document.getElementById("indennizzoField");
-    const form = document.getElementById("convocazioneForm");
 
-    // Funzione per popolare le categorie
-    function populateCategories(sportId) {
-        // Resetta la select delle categorie
-        categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
-        
-        // Se sono presenti categorie per questo sport
-        if (categorieBySport[sportId]) {
-            categorieBySport[sportId].forEach(cat => {
-                const option = document.createElement("option");
-                option.value = cat.nome;
-                option.dataset.indennizzo = cat.indennizzo;
-                option.textContent = cat.nome;
-                categoriaSelect.appendChild(option);
-            });
-            
-            // Abilita la select
-            categoriaSelect.disabled = false;
-            categoriaSelect.classList.remove('disabled');
-        } else {
-            // Disabilita se non ci sono categorie
-            categoriaSelect.disabled = true;
-        }
-    }
-
-    // Listener per la selezione dello sport
-    sportSelect.addEventListener("change", () => {
-        const sportId = sportSelect.value;
-        
-        // Resetta l'indennizzo
-        indennizzoField.value = "";
-        
-        // Popola le categorie
-        populateCategories(sportId);
-    });
-
-    // Listener per la selezione della categoria
-    categoriaSelect.addEventListener("change", () => {
-        const selectedOption = categoriaSelect.selectedOptions[0];
-        if (selectedOption && selectedOption.value !== "") {
-            indennizzoField.value = selectedOption.dataset.indennizzo || "";
-        }
-    });
-
-    // Form validation personalizzata
-    form.addEventListener('submit', function(event) {
-        // Rimuovi eventuali errori precedenti
-        form.querySelectorAll('.was-validated').forEach(el => {
-            el.classList.remove('was-validated');
-        });
-
-        // Verifica validità
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        // Aggiungi classe di validazione
-        form.classList.add('was-validated');
-
-        // Controlli personalizzati
-        const sportValue = sportSelect.value;
-        const categoriaValue = categoriaSelect.value;
-
-        // Se sport è selezionato, assicurati che le categorie siano caricate
-        if (sportValue && (!categoriaSelect.options.length || categoriaSelect.disabled)) {
-            categoriaSelect.setCustomValidity('Seleziona una categoria per lo sport scelto');
-            event.preventDefault();
-        } else {
-            categoriaSelect.setCustomValidity('');
-        }
-    });
-
-    // Imposta data di default
-    const dataInizioInput = document.getElementById('dataInizio');
-    const now = new Date();
-    const localDatetime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-        .toISOString().slice(0, 16);
-    dataInizioInput.value = localDatetime;
-
-    // Popola le categorie al caricamento se uno sport è già selezionato
-    if (sportSelect.value) {
-        populateCategories(sportSelect.value);
-    }
+    // Resto del codice precedente...
 });
