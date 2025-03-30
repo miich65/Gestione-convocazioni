@@ -135,7 +135,7 @@ def form_get(request: Request):
 @app.get("/convocazioni", response_class=HTMLResponse)
 def lista_convocazioni(request: Request):
     """Pagina con la lista delle convocazioni"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM convocazioni ORDER BY data_inizio DESC")
