@@ -3,16 +3,21 @@
 # ---------------------------
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from datetime import datetime
+from datetime import datetime, timedelta
+
 import sqlite3
 import os
+import json
+
+# Librerie per il calendario ICS
 from ics import Calendar, Event
 from ics.alarm import DisplayAlarm
-from datetime import datetime, timedelta
-import json
+from dateutil import parser  # per parsing delle date
+
+# Import del filtro dei template
 from core.template_filters import setup_template_filters
 
 

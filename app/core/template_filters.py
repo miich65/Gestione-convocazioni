@@ -10,6 +10,6 @@ def datetimeformat(value, format='%Y-%m-%d %H:%M'):
     except Exception:
         return str(value)
 
-# Aggiungi questo quando configuri i template
-templates = Jinja2Templates(directory="app/templates")
-templates.env.filters['datetimeformat'] = datetimeformat
+def setup_template_filters(templates):
+    """Registra i filtri personalizzati per Jinja2"""
+    templates.env.filters['datetimeformat'] = datetimeformat
