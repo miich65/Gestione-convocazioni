@@ -13,9 +13,10 @@
 {% include 'partials/navbar.html' %}
 
 <div class="container py-5">
-    <div class="row">
-        <!-- Form Aggiunta Sport -->
+    <!-- Colonna sinistra: Aggiungi Sport e Aggiungi Categoria (uno sotto l'altro) -->
+    <div class="row mb-4">
         <div class="col-md-6">
+            <!-- Form Aggiunta Sport -->
             <div class="card mb-4">
                 <div class="card-header">Aggiungi Nuovo Sport</div>
                 <div class="card-body">
@@ -28,11 +29,9 @@
                     </form>
                 </div>
             </div>
-        </div>
-
-        <!-- Form Aggiunta Categoria -->
-        <div class="col-md-6">
-            <div class="card mb-4">
+            
+            <!-- Form Aggiunta Categoria (ora sotto Aggiungi Sport) -->
+            <div class="card">
                 <div class="card-header">Aggiungi Nuova Categoria</div>
                 <div class="card-body">
                     <form action="/add-categoria" method="post">
@@ -59,10 +58,10 @@
             </div>
         </div>
 
-    <!-- Elenco Sport e Categorie -->
-    <div class="row">
+        <!-- Colonna destra: Sport Registrati e Categorie Registrate (uno sotto l'altro) -->
         <div class="col-md-6">
-            <div class="card">
+            <!-- Sport Registrati (ora sopra Categorie Registrate) -->
+            <div class="card mb-4">
                 <div class="card-header">Sport Registrati</div>
                 <div class="card-body">
                     <table class="table">
@@ -93,8 +92,8 @@
                     </table>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
+            
+            <!-- Categorie Registrate -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Categorie Registrate</span>
