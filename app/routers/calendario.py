@@ -56,9 +56,9 @@ def calendario_ics():
             print(f"Errore nella creazione dell'evento: {e}")
 
     # Assicurati che la directory esista
-    os.makedirs("data", exist_ok=True)
+    os.makedirs("static", exist_ok=True)
     
-    calendario_path = "data/calendario.ics"
+    calendario_path = "static/calendario.ics"
     with open(calendario_path, "w") as f:
         f.writelines(cal.serialize_iter())
 
