@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, BackgroundTasks
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
+
+# Importa la funzione per aggiornare il calendario
+from routers.calendario import update_calendar_after_change
 
 # Definisci il router
 router = APIRouter()
@@ -9,7 +12,7 @@ router = APIRouter()
 # Percorso del database
 DB_PATH = "data/convocazioni.db"
 
-# Template
+# Template (usa l'istanza condivisa per avere i filtri configurati)
 from main import templates
 
 @router.get("/", response_class=HTMLResponse)
@@ -50,37 +53,19 @@ def lista_convocazioni(request: Request):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    
-    # Recupera le convocazioni
     cursor.execute("SELECT * FROM convocazioni ORDER BY data_inizio DESC")
     convocazioni = [dict(row) for row in cursor.fetchall()]
-    
-    # Recupera le categorie (se necessario nella pagina convocazioni)
-    cursor.execute("SELECT * FROM categorie")
-    categorie = cursor.fetchall()
-    
-    # Costruisci il dizionario delle categorie
-    categorie_by_sport = {}
-    for cat in categorie:
-        sport_id = cat["sport_id"]
-        if sport_id not in categorie_by_sport:
-            categorie_by_sport[sport_id] = []
-        categorie_by_sport[sport_id].append({
-            "nome": cat["nome"],
-            "indennizzo": cat["indennizzo"]
-        })
-    
     conn.close()
     
     return templates.TemplateResponse("convocazioni.html", {
         "request": request, 
-        "convocazioni": convocazioni,
-        "categorie_json": categorie_by_sport  # Aggiungi questa variabile
+        "convocazioni": convocazioni
     })
 
 @router.post("/add")
 def form_post(
     request: Request,
+    background_tasks: BackgroundTasks,
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
@@ -126,6 +111,9 @@ def form_post(
             "nome": cat["nome"],
             "indennizzo": cat["indennizzo"]
         })
+    
+    # Aggiorna il calendario in background
+    background_tasks.add_task(update_calendar_after_change)
 
     return templates.TemplateResponse("form.html", {
         "request": request,
@@ -135,18 +123,23 @@ def form_post(
     })
 
 @router.post("/delete/{conv_id}")
-def delete_convocazione(conv_id: int):
+def delete_convocazione(conv_id: int, background_tasks: BackgroundTasks):
     """Elimina una convocazione"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM convocazioni WHERE id=?", (conv_id,))
     conn.commit()
     conn.close()
+    
+    # Aggiorna il calendario in background
+    background_tasks.add_task(update_calendar_after_change)
+    
     return RedirectResponse("/convocazioni", status_code=303)
 
 @router.post("/update/{conv_id}")
 def update_convocazione(
     conv_id: int,
+    background_tasks: BackgroundTasks,
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
@@ -170,4 +163,8 @@ def update_convocazione(
     ))
     conn.commit()
     conn.close()
+    
+    # Aggiorna il calendario in background
+    background_tasks.add_task(update_calendar_after_change)
+    
     return RedirectResponse("/convocazioni", status_code=303)
