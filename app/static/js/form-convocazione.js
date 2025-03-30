@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
             editForm.action = `/update/${convId}`;
         });
     });
-    // Parse categories from server-side
-    const categorieBySport = JSON.parse('{{ categorie_json|tojson|safe }}');
+    // Get categories from data attribute
+    const categorieBySport = JSON.parse(document.getElementById('sportSelect').dataset.categorie);
     
     // Select elements
     const sportSelect = document.getElementById("sportSelect");
