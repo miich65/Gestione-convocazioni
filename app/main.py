@@ -13,7 +13,7 @@ from ics import Calendar, Event
 from ics.alarm import DisplayAlarm
 from datetime import datetime, timedelta
 import json
-from app.core.template_filters import setup_template_filters
+from core.template_filters import setup_template_filters
 
 
 # Inizializzazione dell'app FastAPI
