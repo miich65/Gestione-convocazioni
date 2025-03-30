@@ -1,143 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid convocazioni-wrapper">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0">
-                        <i class="bi bi-calendar-event me-2"></i>Convocazioni Arbitrali
-                    </h2>
-                    <a href="/" class="btn btn-light">
-                        <i class="bi bi-plus-circle me-2"></i>Nuova Convocazione
-                    </a>
+<div class="container-fluid form-convocazione-wrapper mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h1 class="display-6 mb-0">
+                        <i class="bi bi-calendar-plus me-2"></i>Nuova Convocazione
+                    </h1>
                 </div>
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Sport</th>
-                                    <th>Categoria</th>
-                                    <th>Tipo Gara</th>
-                                    <th>Squadre</th>
-                                    <th>Luogo</th>
-                                    <th>Indennizzo</th>
-                                    <th>Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for conv in convocazioni %}
-                                <tr>
-                                    <td>
-                                        <span class="text-nowrap">
-                                            {{ conv.data_inizio|datetimeformat }}
-                                        </span>
-                                        <small class="d-block text-muted">
-                                            Partenza: {{ conv.orario_partenza }}
-                                        </small>
-                                    </td>
-                                    <td>{{ conv.sport }}</td>
-                                    <td>{{ conv.categoria }}</td>
-                                    <td>{{ conv.tipo_gara }}</td>
-                                    <td>{{ conv.squadre }}</td>
-                                    <td>{{ conv.luogo }}</td>
-                                    <td>
-                                        <span class="badge bg-success">
-                                            {{ conv.indennizzo }} CHF
-                                        </span>
-                                        {% if conv.trasferta %}
-                                        <small class="d-block text-muted">
-                                            Trasferta: {{ conv.trasferta }} CHF
-                                        </small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary edit-convocazione-btn" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editConvocazioneModal"
-                                                    data-conv-id="{{ conv.id }}"
-                                                    data-data-inizio="{{ conv.data_inizio }}"
-                                                    data-orario-partenza="{{ conv.orario_partenza }}"
-                                                    data-sport="{{ conv.sport }}"
-                                                    data-categoria="{{ conv.categoria }}"
-                                                    data-tipo-gara="{{ conv.tipo_gara }}"
-                                                    data-squadre="{{ conv.squadre }}"
-                                                    data-luogo="{{ conv.luogo }}"
-                                                    data-trasferta="{{ conv.trasferta or 0 }}"
-                                                    data-indennizzo="{{ conv.indennizzo }}"
-                                                    data-note="{{ conv.note or '' }}">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <form action="/delete/{{ conv.id }}" method="post" 
-                                                  onsubmit="return confirm('Eliminare questa convocazione?');">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer d-flex justify-content-between align-items-center">
-                    <a href="/calendario.ics" class="btn btn-outline-primary">
-                        <i class="bi bi-calendar-plus me-2"></i>Esporta Calendario
-                    </a>
-                    <div class="text-muted">
-                        Totale Convocazioni: {{ convocazioni|length }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="card-body p-5">
+                    {% if msg %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
 
-    <!-- Modale per Modifica Convocazione -->
-    <div class="modal fade" id="editConvocazioneModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-pencil me-2"></i>Modifica Convocazione
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="editConvocazioneForm" action="/update/{conv_id}" method="post">
-                    <div class="modal-body">
-                        <div class="row g-3">
+                    <!-- Aggiungi qui il contenitore nascosto per i dati delle categorie -->
+                    <script id="categorieData" type="application/json">
+                        {{ categorie_json | tojson }}
+                    </script>
+
+                    <form id="convocazioneForm" action="/add" method="post" novalidate>
+                        <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="datetime-local" name="data_inizio" id="editDataInizio" class="form-control" required>
-                                    <label>Data e ora partita</label>
+                                    <input type="datetime-local" class="form-control" id="dataInizio" name="data_inizio" required>
+                                    <label for="dataInizio">Data e ora partita</label>
+                                    <div class="invalid-feedback">Seleziona data e ora</div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="time" name="orario_partenza" id="editOrarioPartenza" class="form-control" required>
-                                    <label>Ora partenza</label>
+                                    <input type="time" class="form-control" id="orarioPartenza" name="orario_partenza" required>
+                                    <label for="orarioPartenza">Ora partenza</label>
+                                    <div class="invalid-feedback">Seleziona ora partenza</div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="sport" id="editSport" class="form-control" required>
-                                    <label>Sport</label>
+                                    <select id="sportSelect" name="sport" class="form-select" required>
+                                        <option value="">Seleziona sport</option>
+                                        {% for sport in sport_list %}
+                                            <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="sportSelect">Sport</label>
+                                    <div class="invalid-feedback">Scegli uno sport</div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="categoria" id="editCategoria" class="form-control" required>
-                                    <label>Categoria</label>
+                                    <select id="categoriaSelect" name="categoria" class="form-select" required disabled>
+                                        <option value="">Seleziona categoria</option>
+                                    </select>
+                                    <label for="categoriaSelect">Categoria</label>
+                                    <div class="invalid-feedback">Scegli una categoria</div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-6">
                                 <div class="form-floating">
-                                    <select name="tipo_gara" id="editTipoGara" class="form-select" required>
+                                    <select name="tipo_gara" class="form-select" required>
+                                        <option value="">Seleziona tipo gara</option>
                                         <option value="Regular season">Regular season</option>
                                         <option value="Playoff">Playoff</option>
                                         <option value="Playout">Playout</option>
@@ -145,49 +75,55 @@
                                         <option value="Amichevole">Amichevole</option>
                                     </select>
                                     <label>Tipo Gara</label>
+                                    <div class="invalid-feedback">Scegli il tipo di gara</div>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="squadre" id="editSquadre" class="form-control" required>
-                                    <label>Squadre</label>
+                                    <input type="number" step="0.01" name="indennizzo" id="indennizzoField" class="form-control" readonly required>
+                                    <label for="indennizzoField">Indennizzo (CHF)</label>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="luogo" id="editLuogo" class="form-control" required>
-                                    <label>Luogo</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="number" name="trasferta" id="editTrasferta" class="form-control" step="0.01">
+                                    <input type="number" step="0.01" name="trasferta" class="form-control" placeholder="Opzionale">
                                     <label>Trasferta (CHF)</label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-12">
                                 <div class="form-floating">
-                                    <input type="number" name="indennizzo" id="editIndennizzo" class="form-control" step="0.01" required>
-                                    <label>Indennizzo (CHF)</label>
+                                    <input type="text" name="squadre" class="form-control" placeholder="Team A vs Team B" required>
+                                    <label>Squadre</label>
+                                    <div class="invalid-feedback">Inserisci le squadre</div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-12">
                                 <div class="form-floating">
-                                    <textarea name="note" id="editNote" class="form-control" style="height: 100px"></textarea>
+                                    <input type="text" name="luogo" class="form-control" placeholder="Via e città" required>
+                                    <label>Luogo</label>
+                                    <div class="invalid-feedback">Inserisci il luogo</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea name="note" class="form-control" placeholder="Note aggiuntive" style="height: 100px"></textarea>
                                     <label>Note</label>
                                 </div>
                             </div>
+
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-save me-2"></i>Salva convocazione
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-2"></i>Annulla
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save me-2"></i>Salva Modifiche
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -195,5 +131,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/convocazioni.js"></script>
+<script src="/static/js/form-convocazione.js"></script>
 {% endblock %}
