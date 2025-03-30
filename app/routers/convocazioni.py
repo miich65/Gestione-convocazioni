@@ -50,13 +50,32 @@ def lista_convocazioni(request: Request):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+    
+    # Recupera le convocazioni
     cursor.execute("SELECT * FROM convocazioni ORDER BY data_inizio DESC")
     convocazioni = [dict(row) for row in cursor.fetchall()]
+    
+    # Recupera le categorie (se necessario nella pagina convocazioni)
+    cursor.execute("SELECT * FROM categorie")
+    categorie = cursor.fetchall()
+    
+    # Costruisci il dizionario delle categorie
+    categorie_by_sport = {}
+    for cat in categorie:
+        sport_id = cat["sport_id"]
+        if sport_id not in categorie_by_sport:
+            categorie_by_sport[sport_id] = []
+        categorie_by_sport[sport_id].append({
+            "nome": cat["nome"],
+            "indennizzo": cat["indennizzo"]
+        })
+    
     conn.close()
     
     return templates.TemplateResponse("convocazioni.html", {
         "request": request, 
-        "convocazioni": convocazioni
+        "convocazioni": convocazioni,
+        "categorie_json": categorie_by_sport  # Aggiungi questa variabile
     })
 
 @router.post("/add")
