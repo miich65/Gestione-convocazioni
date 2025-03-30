@@ -62,4 +62,4 @@ def calendario_ics():
     with open(calendario_path, "w") as f:
         f.writelines(cal.serialize_iter())
 
-    return FileResponse(calendario_path, media_type='text/calendar', filename="calendario_arbitri.ics")
+    return FileResponse(calendario_path, media_type='text/calendar')
