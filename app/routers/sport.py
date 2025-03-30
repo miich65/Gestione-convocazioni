@@ -167,47 +167,50 @@ def delete_categoria(categoria_id: int):
     
     return RedirectResponse("/gestione-sport", status_code=303),
 
-
-def get_sport_stats():
+def get_sport_stats() -> List[Dict[str, Any]]:
     """
-    Recupera le statistiche per sport e categorie
-    Calcola:
-    - Numero totale di partite per sport
-    - Numero di partite per categoria
+    Recupera le statistiche per sport e categorie con conteggio partite
     """
     conn = sqlite3.connect("app/data/convocazioni.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    # Query per recuperare sport, categorie e conteggio partite
+    # Query migliorata per prestazioni e chiarezza
     cursor.execute('''
-        WITH sport_stats AS (
+        WITH categoria_stats AS (
             SELECT 
-                s.id as sport_id, 
-                s.nome as sport_nome, 
-                c.id as categoria_id, 
-                c.nome as categoria_nome,
+                c.sport_id, 
+                c.id AS categoria_id,
+                c.nome AS categoria_nome,
                 c.indennizzo,
-                COUNT(conv.id) as partite_categoria
-            FROM sport s
-            LEFT JOIN categorie c ON s.id = c.sport_id
-            LEFT JOIN convocazioni conv ON s.nome = conv.sport AND c.nome = conv.categoria
-            GROUP BY s.id, s.nome, c.id, c.nome, c.indennizzo
+                (SELECT COUNT(*) 
+                 FROM convocazioni conv 
+                 WHERE conv.sport = (SELECT nome FROM sport WHERE id = c.sport_id) 
+                   AND conv.categoria = c.nome
+                ) AS partite_categoria
+            FROM categorie c
         ),
-        total_sport_stats AS (
+        sport_stats AS (
             SELECT 
-                sport_id, 
-                sport_nome, 
-                SUM(partite_categoria) as partite_totali
-            FROM sport_stats
-            GROUP BY sport_id, sport_nome
+                s.id AS sport_id, 
+                s.nome AS sport_nome,
+                (SELECT SUM(partite_categoria) 
+                 FROM categoria_stats cs 
+                 WHERE cs.sport_id = s.id
+                ) AS partite_totali
+            FROM sport s
         )
         SELECT 
-            ss.*,
-            tss.partite_totali
+            ss.sport_id, 
+            ss.sport_nome, 
+            ss.partite_totali,
+            cs.categoria_id,
+            cs.categoria_nome,
+            cs.indennizzo,
+            cs.partite_categoria
         FROM sport_stats ss
-        JOIN total_sport_stats tss ON ss.sport_id = tss.sport_id
-        ORDER BY ss.sport_nome, ss.categoria_nome
+        LEFT JOIN categoria_stats cs ON cs.sport_id = ss.sport_id
+        ORDER BY ss.sport_nome, cs.categoria_nome
     ''')
     
     # Raggruppa i risultati
@@ -218,7 +221,7 @@ def get_sport_stats():
             sports[sport_id] = {
                 'id': sport_id,
                 'nome': row['sport_nome'],
-                'partite_totali': row['partite_totali'],
+                'partite_totali': row['partite_totali'] or 0,
                 'categorie': []
             }
         
@@ -228,18 +231,71 @@ def get_sport_stats():
                 'id': row['categoria_id'],
                 'nome': row['categoria_nome'],
                 'indennizzo': row['indennizzo'],
-                'partite': row['partite_categoria']
+                'partite': row['partite_categoria'] or 0
             })
     
     conn.close()
     return list(sports.values())
+
+def get_sport_with_complete_details():
+    """
+    Recupera sport e categorie per la pagina di gestione
+    """
+    conn = sqlite3.connect("app/data/convocazioni.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Query per recuperare sport e categorie con nome dello sport
+    cursor.execute('''
+        SELECT 
+            s.id as sport_id, 
+            s.nome as sport_nome, 
+            c.id as categoria_id, 
+            c.nome as categoria_nome, 
+            c.indennizzo,
+            (SELECT nome FROM sport WHERE id = c.sport_id) as categoria_sport_nome
+        FROM sport s
+        LEFT JOIN categorie c ON s.id = c.sport_id
+        ORDER BY s.nome, c.nome
+    ''')
+    
+    # Raggruppa i risultati
+    sports = {}
+    sport_categorie = []
+    for row in cursor.fetchall():
+        sport_id = row['sport_id']
+        if sport_id not in sports:
+            sports[sport_id] = {
+                'id': sport_id,
+                'nome': row['sport_nome'],
+                'categorie': []
+            }
+        
+        # Aggiungi categoria se esiste
+        if row['categoria_id']:
+            categoria = {
+                'id': row['categoria_id'],
+                'nome': row['categoria_nome'],
+                'indennizzo': row['indennizzo'],
+                'sport_id': sport_id,
+                'sport_nome': row['categoria_sport_nome']
+            }
+            sports[sport_id]['categorie'].append(categoria)
+            sport_categorie.append(categoria)
+    
+    conn.close()
+    return list(sports.values()), sport_categorie
 
 @router.get("/gestione-sport", response_class=templates.TemplateResponse)
 def gestione_sport(request: Request):
     """Pagina di gestione sport con statistiche"""
     sport_list = get_sport_stats()
     
+    # Recupera anche le categorie per il template
+    _, sport_categorie = get_sport_with_complete_details()
+    
     return templates.TemplateResponse("gestione-sport.html", {
         "request": request, 
-        "sport_list": sport_list
+        "sport_list": sport_list,
+        "sport_categorie": sport_categorie
     })

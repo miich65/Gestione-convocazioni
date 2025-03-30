@@ -1,0 +1,72 @@
+<!-- Modale per modifica Sport -->
+<div class="modal fade" id="editSportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Modifica Sport
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSportForm" action="/update-sport/{sport_id}" method="post">
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <input type="text" name="nome" id="editSportName" class="form-control" required>
+                        <label>Nome Sport</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Annulla
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salva Modifiche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modale per modifica Categoria -->
+<div class="modal fade" id="editCategoriaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Modifica Categoria
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCategoriaForm" action="/update-categoria/{categoria_id}" method="post">
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <select name="sport_id" id="editCategoriaSport" class="form-select" required>
+                            <option value="">Seleziona Sport</option>
+                            {% for sport in sport_list %}
+                                <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <label>Sport</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="nome_categoria" id="editCategoriaNome" class="form-control" required>
+                        <label>Nome Categoria</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="number" name="indennizzo" id="editCategoriaIndennizzo" class="form-control" step="0.01" required>
+                        <label>Indennizzo (CHF)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Annulla
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salva Modifiche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

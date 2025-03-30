@@ -3,58 +3,163 @@
 {% block content %}
 <div class="container-fluid sport-management-wrapper">
     <div class="row">
-        <div class="col-12">
-            <div class="card shadow-lg border-0 rounded-4">
+        <div class="col-md-6">
+            <!-- Aggiunta Sport -->
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0">
-                        <i class="bi bi-trophy me-2"></i>Gestione Sport
-                    </h2>
-                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#aggiungiSportModal">
-                        <i class="bi bi-plus-circle me-2"></i>Aggiungi Sport
-                    </button>
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Aggiungi Nuovo Sport
+                    </h5>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                <div class="card-body">
+                    <form action="/add-sport" method="post">
+                        <div class="input-group">
+                            <input type="text" name="nome" class="form-control" placeholder="Nome dello sport" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Aggiungi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Aggiunta Categoria -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-layers me-2"></i>Aggiungi Nuova Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="/add-categoria" method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <select name="sport_id" class="form-select" required>
+                                    <option value="">Seleziona Sport</option>
+                                    {% for sport in sport_list %}
+                                        <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="nome_categoria" class="form-control" placeholder="Nome Categoria" required>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">CHF</span>
+                                    <input type="number" name="indennizzo" class="form-control" placeholder="Indennizzo" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-save me-2"></i>Aggiungi Categoria
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <!-- Sport Registrati -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy me-2"></i>Sport Registrati
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sport</th>
+                                    <th>Partite Totali</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sport in sport_list %}
+                                <tr>
+                                    <td>{{ sport.nome }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ sport.partite_totali or 0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary edit-sport-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editSportModal" 
+                                                    data-sport-id="{{ sport.id }}" 
+                                                    data-sport-name="{{ sport.nome }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form action="/delete-sport/{{ sport.id }}" method="post" class="d-inline" 
+                                                  onsubmit="return confirm('Eliminare questo sport?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Categorie Registrate -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-layers me-2"></i>Categorie Registrate
+                    </h5>
+                    <select id="filterSport" class="form-select form-select-sm" style="width: auto;">
+                        <option value="all">Tutti gli Sport</option>
                         {% for sport in sport_list %}
-                        <div class="col">
-                            <div class="card h-100 border-primary">
-                                <div class="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">{{ sport.nome }}</h5>
-                                    <span class="badge bg-primary rounded-pill">
-                                        <i class="bi bi-calendar-event me-1"></i>
-                                        {{ sport.partite_totali }} Partite
-                                    </span>
-                                </div>
+                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div id="categorie-container" class="row row-cols-1 g-3">
+                        {% for categoria in sport_categorie %}
+                        <div class="col categoria-card" data-sport-id="{{ categoria.sport_id }}">
+                            <div class="card h-100 categoria-item">
                                 <div class="card-body">
-                                    <ul class="list-group list-group-flush">
-                                        {% for categoria in sport.categorie %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            {{ categoria.nome }} 
-                                            {% if categoria.partite > 0 %}
-                                            <span class="badge bg-success rounded-pill">
-                                                <i class="bi bi-trophy me-1"></i>
-                                                {{ categoria.partite }}
-                                            </span>
-                                            {% else %}
-                                            <span class="badge bg-secondary rounded-pill">
-                                                0
-                                            </span>
-                                            {% endif %}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                <div class="card-footer d-flex justify-content-between">
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#aggiungiCategoriaModal{{ sport.id }}">
-                                        <i class="bi bi-plus-circle me-2"></i>Categoria
-                                    </button>
-                                    <div class="btn-group" role="group">
-                                        <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modificaSportModal{{ sport.id }}">
-                                            <i class="bi bi-pencil me-1"></i>Modifica
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#eliminaSportModal{{ sport.id }}">
-                                            <i class="bi bi-trash me-1"></i>Elimina
-                                        </button>
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="badge bg-primary mb-2">{{ categoria.sport_nome }}</span>
+                                            <h6 class="card-title mb-1">{{ categoria.nome }}</h6>
+                                            <div class="small text-muted">
+                                                <strong class="text-success">
+                                                    <i class="bi bi-cash-coin me-1"></i>
+                                                    {{ categoria.indennizzo }} CHF
+                                                </strong>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group-vertical" role="group">
+                                            <button class="btn btn-sm btn-outline-primary edit-categoria-btn mb-1" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editCategoriaModal" 
+                                                    data-categoria-id="{{ categoria.id }}" 
+                                                    data-categoria-nome="{{ categoria.nome }}" 
+                                                    data-categoria-sport="{{ categoria.sport_id }}"
+                                                    data-categoria-indennizzo="{{ categoria.indennizzo }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form action="/delete-categoria/{{ categoria.id }}" method="post" 
+                                                  onsubmit="return confirm('Eliminare questa categoria?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -65,43 +170,12 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal Aggiungi Sport -->
-<div class="modal fade" id="aggiungiSportModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Aggiungi Nuovo Sport</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="/add-sport" method="post">
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="nuovoSportNome" name="nome" required>
-                        <label for="nuovoSportNome">Nome Sport</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Modali (mantenuti come nel template originale) -->
+    {% include 'partials/modali_gestione_sport.html' %}
 </div>
+{% endblock %}
 
-<!-- Stile aggiuntivo -->
-<style>
-    .sport-management-wrapper {
-        background-color: #f4f6f9;
-        min-height: calc(100vh - 56px);
-        padding: 2rem 0;
-    }
-    .card-header-stats {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-</style>
+{% block scripts %}
+<script src="/static/js/gestione-sport.js"></script>
 {% endblock %}
