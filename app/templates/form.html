@@ -18,6 +18,11 @@
                         </div>
                     {% endif %}
 
+                    <!-- Aggiungi qui il contenitore nascosto per i dati delle categorie -->
+                    <script id="categorieData" type="application/json">
+                        {{ categorie_json | tojson | safe }}
+                    </script>
+
                     <form id="convocazioneForm" action="/add" method="post" novalidate>
                         <div class="row g-4">
                             <div class="col-md-6">
@@ -41,7 +46,7 @@
                                     <select id="sportSelect" name="sport" class="form-select" required>
                                         <option value="">Seleziona sport</option>
                                         {% for sport in sport_list %}
-                                            <option value="{{ sport['id'] }}">{{ sport['nome'] }}</option>
+                                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
                                         {% endfor %}
                                     </select>
                                     <label for="sportSelect">Sport</label>

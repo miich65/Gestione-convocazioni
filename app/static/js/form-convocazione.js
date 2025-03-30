@@ -6,16 +6,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const convocazioneForm = document.getElementById('convocazioneForm');
 
     // Ottieni i dati delle categorie dal backend
-    // Cerca se abbiamo un elemento con id 'categorieData' che contiene i dati delle categorie
     let categorieData = {};
     const dataElement = document.getElementById('categorieData');
     
     if (dataElement) {
         try {
             categorieData = JSON.parse(dataElement.textContent);
+            console.log("Dati categorie caricati:", categorieData);
         } catch (e) {
             console.error('Errore nel parsing dei dati delle categorie:', e);
         }
+    } else {
+        console.error('Elemento categorieData non trovato nel DOM');
     }
 
     // Funzione per popolare il dropdown delle categorie in base allo sport selezionato
@@ -25,18 +27,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Ottieni l'ID dello sport selezionato
         const sportId = sportSelect.value;
+        console.log("Sport selezionato ID:", sportId, "Tipo:", typeof sportId);
         
         if (!sportId) {
             // Se nessuno sport è selezionato, disabilita il dropdown delle categorie
             categoriaSelect.disabled = true;
             indennizzoField.value = '';
+            console.log("Nessuno sport selezionato, dropdown categorie disabilitato");
             return;
         }
         
-        // Ottieni le categorie per lo sport selezionato
-        const categorie = categorieData[sportId] || [];
+        // Cerca le categorie sia come stringa che come numero
+        let categorie = categorieData[sportId] || categorieData[String(sportId)] || [];
+        console.log("Categorie trovate:", categorie);
         
         if (categorie.length === 0) {
+            console.log("Nessuna categoria trovata per lo sport ID:", sportId);
             categoriaSelect.disabled = true;
             return;
         }
@@ -52,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Abilita il dropdown delle categorie
         categoriaSelect.disabled = false;
+        console.log("Dropdown categorie abilitato con", categorie.length, "opzioni");
     }
 
     // Funzione per aggiornare l'indennizzo in base alla categoria selezionata
@@ -60,28 +67,55 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (selectedOption && selectedOption.dataset.indennizzo) {
             indennizzoField.value = selectedOption.dataset.indennizzo;
+            console.log("Indennizzo impostato a:", selectedOption.dataset.indennizzo);
         } else {
             indennizzoField.value = '';
+            console.log("Indennizzo azzerato, nessuna categoria selezionata");
         }
     }
 
     // Aggiungi i listener degli eventi
-    sportSelect.addEventListener('change', updateCategorieDropdown);
-    categoriaSelect.addEventListener('change', updateIndennizzo);
+    if (sportSelect) {
+        console.log("Aggiunto listener change a sportSelect");
+        sportSelect.addEventListener('change', function() {
+            console.log("Evento change su sportSelect rilevato");
+            updateCategorieDropdown();
+        });
+    } else {
+        console.error("Elemento sportSelect non trovato nel DOM");
+    }
+    
+    if (categoriaSelect) {
+        console.log("Aggiunto listener change a categoriaSelect");
+        categoriaSelect.addEventListener('change', updateIndennizzo);
+    } else {
+        console.error("Elemento categoriaSelect non trovato nel DOM");
+    }
 
     // Validazione del form
-    convocazioneForm.addEventListener('submit', function(event) {
-        if (!convocazioneForm.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            // Aggiungi la classe 'was-validated' per mostrare i messaggi di errore di Bootstrap
-            convocazioneForm.classList.add('was-validated');
-        }
-    });
+    if (convocazioneForm) {
+        convocazioneForm.addEventListener('submit', function(event) {
+            if (!convocazioneForm.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log("Form validazione fallita");
+                
+                // Aggiungi la classe 'was-validated' per mostrare i messaggi di errore di Bootstrap
+                convocazioneForm.classList.add('was-validated');
+            } else {
+                console.log("Form validazione riuscita");
+            }
+        });
+    } else {
+        console.error("Elemento convocazioneForm non trovato nel DOM");
+    }
 
     // Inizializza il dropdown delle categorie se uno sport è già selezionato
-    if (sportSelect.value) {
+    if (sportSelect && sportSelect.value) {
+        console.log("Sport già selezionato all'avvio, aggiorno categorie");
         updateCategorieDropdown();
     }
+    
+    // Aggiungi un log per verificare che lo script sia stato caricato
+    console.log("Script form-convocazione.js caricato correttamente");
 });
