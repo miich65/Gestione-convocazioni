@@ -1,103 +1,93 @@
 from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
+from typing import List, Dict, Any
 
+# Definisci il router
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/gestione-sport", response_class=templates.TemplateResponse)
+# Percorso del database
+DB_PATH = "data/convocazioni.db"
+
+# Template
+templates = Jinja2Templates(directory="templates")
+
+@router.get("/gestione-sport", response_class=HTMLResponse)
 def gestione_sport(request: Request):
     """Pagina di gestione sport"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
 
-    # Query per recuperare sport e categorie
-    cursor.execute('''
-        SELECT s.id as sport_id, s.nome as sport_nome, 
-               c.id as categoria_id, c.nome as categoria_nome, c.indennizzo
-        FROM sport s
-        LEFT JOIN categorie c ON s.id = c.sport_id
-        ORDER BY s.nome, c.nome
-    ''')
-    
-    # Raggruppa i risultati
-    sports = {}
-    for row in cursor.fetchall():
-        sport_id = row['sport_id']
-        if sport_id not in sports:
-            sports[sport_id] = {
-                'id': sport_id,
-                'nome': row['sport_nome'],
-                'categorie': []
-            }
-        
-        # Aggiungi categoria se esiste
-        if row['categoria_id']:
-            sports[sport_id]['categorie'].append({
-                'id': row['categoria_id'],
-                'nome': row['categoria_nome'],
-                'indennizzo': row['indennizzo']
-            })
-    
-    conn.close()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM sport ORDER BY nome")
 
+    sport = cur.fetchall()
+    sport_dict = [dict(row) for row in sport]
+
+    cur.execute('''SELECT categorie.*, sport.nome as sport_nome FROM categorie
+                    JOIN sport ON categorie.sport_id = sport.id
+                    ORDER BY sport.nome, categorie.nome''')
+    
+    categorie = cur.fetchall()
+    categorie_dict = [dict(row) for row in categorie]
+
+    conn.close()    
+    
     return templates.TemplateResponse("gestione-sport.html", {
-        "request": request, 
-        "sport_list": list(sports.values())
+        "request": request,
+        "sport_list": sport_dict,
+        "sport_categorie": categorie_dict
     })
 
 @router.post("/add-sport")
 def add_sport(nome: str = Form(...)):
     """Aggiunge un nuovo sport"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    try:
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR IGNORE INTO sport (nome) VALUES (?)", (nome,))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        # Sport già esistente
-        pass
-    finally:
-        conn.close()
-    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR IGNORE INTO sport (nome) VALUES (?)", (nome,))
+    conn.commit()
+    conn.close()
     return RedirectResponse("/gestione-sport", status_code=303)
 
-@router.post("/update-sport/{sport_id}")
-def update_sport(sport_id: int, nome: str = Form(...)):
-    """Aggiorna un sport esistente"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    try:
-        cursor = conn.cursor()
-        cursor.execute("UPDATE sport SET nome = ? WHERE id = ?", (nome, sport_id))
-        conn.commit()
-    except sqlite3.Error:
-        # Gestisci eventuali errori
-        pass
-    finally:
-        conn.close()
+@router.post("/update-sport/{id}")
+def update_sport(id: int, nome: str = Form(...)):
+    """Aggiorna il nome di uno sport"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
     
+    # Aggiorna lo sport nel database
+    cursor.execute("UPDATE sport SET nome = ? WHERE id = ?", (nome, id))
+    
+    conn.commit()
+    conn.close()
+    
+    # Reindirizza alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
 
-@router.post("/delete-sport/{sport_id}")
-def delete_sport(sport_id: int):
-    """Elimina uno sport"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
+@router.post("/delete-sport/{id}")
+def delete_sport(id: int):
+    """Elimina uno sport se non ha categorie associate"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
     try:
-        cursor = conn.cursor()
         # Verifica se ci sono categorie associate
-        cursor.execute("SELECT COUNT(*) FROM categorie WHERE sport_id = ?", (sport_id,))
-        if cursor.fetchone()[0] > 0:
-            # Impossibile eliminare sport con categorie
+        cursor.execute("SELECT COUNT(*) FROM categorie WHERE sport_id = ?", (id,))
+        categoria_count = cursor.fetchone()[0]
+        
+        if categoria_count > 0:
+            conn.close()
+            # Qui potresti voler gestire questo caso, magari con un messaggio di errore
             return RedirectResponse("/gestione-sport?error=Impossibile+eliminare+sport+con+categorie+associate", status_code=303)
         
         # Elimina lo sport
-        cursor.execute("DELETE FROM sport WHERE id = ?", (sport_id,))
+        cursor.execute("DELETE FROM sport WHERE id = ?", (id,))
         conn.commit()
-    except sqlite3.Error:
-        # Gestisci eventuali errori
-        pass
+    except sqlite3.Error as e:
+        # Gestione degli errori
+        conn.rollback()
+        return RedirectResponse(f"/gestione-sport?error={str(e)}", status_code=303)
     finally:
         conn.close()
     
@@ -105,73 +95,63 @@ def delete_sport(sport_id: int):
 
 @router.post("/add-categoria")
 def add_categoria(
-    sport_id: int = Form(...), 
-    nome_categoria: str = Form(...), 
-    indennizzo: float = Form(...)
+    sport_id: int = Form(...),          # ID dello sport a cui appartiene la categoria
+    nome_categoria: str = Form(...),    # Nome della categoria
+    indennizzo: float = Form(...)       # Indennizzo per la categoria
 ):
     """Aggiunge una nuova categoria"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    try:
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO categorie (sport_id, nome, indennizzo) 
-            VALUES (?, ?, ?)
-        ''', (sport_id, nome_categoria, indennizzo))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        # Categoria già esistente
-        pass
-    finally:
-        conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
     
+    # Modifica la query SQL per rimuovere tipo_gara
+    cursor.execute('''INSERT INTO categorie (sport_id, nome, indennizzo)
+                    VALUES (?, ?, ?)''', (sport_id, nome_categoria, indennizzo))
+    
+    conn.commit()
+    conn.close()
+    # Reindirizzamento alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
 
-@router.post("/update-categoria/{categoria_id}")
+@router.post("/delete-categoria/{id}")
+def delete_categoria(id: int):
+    """Elimina una categoria"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM categorie WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    # Reindirizzamento alla pagina di gestione sport
+    return RedirectResponse("/gestione-sport", status_code=303)
+
+@router.post("/update-categoria/{id}")
 def update_categoria(
-    categoria_id: int,
-    sport_id: int = Form(...), 
-    nome_categoria: str = Form(...), 
+    id: int,
+    sport_id: int = Form(...),
+    nome_categoria: str = Form(...),
     indennizzo: float = Form(...)
 ):
     """Aggiorna una categoria esistente"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    try:
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE categorie 
-            SET sport_id = ?, nome = ?, indennizzo = ? 
-            WHERE id = ?
-        ''', (sport_id, nome_categoria, indennizzo, categoria_id))
-        conn.commit()
-    except sqlite3.Error:
-        # Gestisci eventuali errori
-        pass
-    finally:
-        conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
     
+    # Aggiorna la categoria nel database
+    cursor.execute("""
+        UPDATE categorie 
+        SET sport_id = ?, nome = ?, indennizzo = ? 
+        WHERE id = ?
+    """, (sport_id, nome_categoria, indennizzo, id))
+    
+    conn.commit()
+    conn.close()
+    
+    # Reindirizza alla pagina di gestione sport
     return RedirectResponse("/gestione-sport", status_code=303)
-
-@router.post("/delete-categoria/{categoria_id}")
-def delete_categoria(categoria_id: int):
-    """Elimina una categoria"""
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    try:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM categorie WHERE id = ?", (categoria_id,))
-        conn.commit()
-    except sqlite3.Error:
-        # Gestisci eventuali errori
-        pass
-    finally:
-        conn.close()
-    
-    return RedirectResponse("/gestione-sport", status_code=303),
 
 def get_sport_stats() -> List[Dict[str, Any]]:
     """
     Recupera le statistiche per sport e categorie con conteggio partite
     """
-    conn = sqlite3.connect("app/data/convocazioni.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -236,66 +216,3 @@ def get_sport_stats() -> List[Dict[str, Any]]:
     
     conn.close()
     return list(sports.values())
-
-def get_sport_with_complete_details():
-    """
-    Recupera sport e categorie per la pagina di gestione
-    """
-    conn = sqlite3.connect("app/data/convocazioni.db")
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # Query per recuperare sport e categorie con nome dello sport
-    cursor.execute('''
-        SELECT 
-            s.id as sport_id, 
-            s.nome as sport_nome, 
-            c.id as categoria_id, 
-            c.nome as categoria_nome, 
-            c.indennizzo,
-            (SELECT nome FROM sport WHERE id = c.sport_id) as categoria_sport_nome
-        FROM sport s
-        LEFT JOIN categorie c ON s.id = c.sport_id
-        ORDER BY s.nome, c.nome
-    ''')
-    
-    # Raggruppa i risultati
-    sports = {}
-    sport_categorie = []
-    for row in cursor.fetchall():
-        sport_id = row['sport_id']
-        if sport_id not in sports:
-            sports[sport_id] = {
-                'id': sport_id,
-                'nome': row['sport_nome'],
-                'categorie': []
-            }
-        
-        # Aggiungi categoria se esiste
-        if row['categoria_id']:
-            categoria = {
-                'id': row['categoria_id'],
-                'nome': row['categoria_nome'],
-                'indennizzo': row['indennizzo'],
-                'sport_id': sport_id,
-                'sport_nome': row['categoria_sport_nome']
-            }
-            sports[sport_id]['categorie'].append(categoria)
-            sport_categorie.append(categoria)
-    
-    conn.close()
-    return list(sports.values()), sport_categorie
-
-@router.get("/gestione-sport", response_class=templates.TemplateResponse)
-def gestione_sport(request: Request):
-    """Pagina di gestione sport con statistiche"""
-    sport_list = get_sport_stats()
-    
-    # Recupera anche le categorie per il template
-    _, sport_categorie = get_sport_with_complete_details()
-    
-    return templates.TemplateResponse("gestione-sport.html", {
-        "request": request, 
-        "sport_list": sport_list,
-        "sport_categorie": sport_categorie
-    })
