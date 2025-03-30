@@ -11,7 +11,7 @@ router = APIRouter()
 DB_PATH = "data/convocazioni.db"
 
 # Template
-templates = Jinja2Templates(directory="templates")
+from main import templates
 
 @router.get("/gestione-sport", response_class=HTMLResponse)
 def gestione_sport(request: Request):
