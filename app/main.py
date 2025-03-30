@@ -13,6 +13,7 @@ from ics import Calendar, Event
 from ics.alarm import DisplayAlarm
 from datetime import datetime, timedelta
 import json
+from app.core.template_filters import setup_template_filters
 
 
 # Inizializzazione dell'app FastAPI
@@ -94,6 +95,7 @@ os.makedirs("static/css", exist_ok=True)
 os.makedirs("static/js", exist_ok=True)
 
 templates = Jinja2Templates(directory="templates")
+setup_template_filters(templates)
 
 # ---------------------------
 # Pagina iniziale con il form per inserire la convocazione
