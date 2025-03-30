@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM completamente caricato e analizzato");
+    
     // Riferimenti agli elementi del form
     const sportSelect = document.getElementById('sportSelect');
     const categoriaSelect = document.getElementById('categoriaSelect');

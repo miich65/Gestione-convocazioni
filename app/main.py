@@ -20,9 +20,23 @@ from dateutil import parser  # per parsing delle date
 # Import del filtro dei template
 from core.template_filters import setup_template_filters
 
+# Importa il router convocazioni
+from routers.convocazioni import router as convocazioni_router
+# Importa il router sport
+from routers.sport import router as sport_router
+# Importa il router calendario
+from routers.calendario import router as calendario_router
 
 # Inizializzazione dell'app FastAPI
 app = FastAPI()
+
+# Registrazione dei router
+app.include_router(convocazioni_router, tags=["Convocazioni"])
+app.include_router(sport_router, tags=["Sport"])
+app.include_router(calendario_router, tags=["Calendario"])
+
+
+
 
 # ---------------------------
 # Configurazione del database SQLite
@@ -171,6 +185,7 @@ def form_post(
     note: str = Form("")
 ):
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # Importante! Imposta row_factory per avere dict-like objects
     cursor = conn.cursor()
 
     # Salva la convocazione
@@ -191,8 +206,10 @@ def form_post(
     conn.commit()
     conn.close()
 
+    # Costruisci dizionario {sport_id: [categorie]}
     categorie_by_sport = {}
     for cat in categorie:
+        # Accedi agli elementi come dict (dato che abbiamo impostato row_factory)
         sport_id = cat["sport_id"]
         if sport_id not in categorie_by_sport:
             categorie_by_sport[sport_id] = []
@@ -207,8 +224,6 @@ def form_post(
         "sport_list": sport_list,
         "categorie_json": categorie_by_sport
     })
-
-
 # ---------------------------
 # Endpoint per eliminare una convocazione
 # ---------------------------

@@ -18,7 +18,14 @@
                         </div>
                     {% endif %}
 
-                    <!-- Aggiungi qui il contenitore nascosto per i dati delle categorie -->
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <!-- Contenitore per i dati delle categorie -->
                     <script id="categorieData" type="application/json">
                         {{ categorie_json | tojson | safe }}
                     </script>
