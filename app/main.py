@@ -134,14 +134,18 @@ def form_get(request: Request):
 # ---------------------------
 @app.get("/convocazioni", response_class=HTMLResponse)
 def lista_convocazioni(request: Request):
-    conn = sqlite3.connect(DB_PATH)
+    """Pagina con la lista delle convocazioni"""
+    conn = sqlite3.connect("app/data/convocazioni.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM convocazioni ORDER BY data_inizio DESC")
     convocazioni = [dict(row) for row in cursor.fetchall()]
     conn.close()
-    return templates.TemplateResponse("convocazioni.html", {"request": request, "convocazioni": convocazioni})
-
+    
+    return templates.TemplateResponse("convocazioni.html", {
+        "request": request, 
+        "convocazioni": convocazioni
+    })
 # ---------------------------
 # Endpoint per gestire l'invio del form e salvare la convocazione nel DB
 # ---------------------------
