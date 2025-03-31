@@ -21,7 +21,19 @@ def generate_ics_file():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # Per accedere alle colonne per nome
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM convocazioni")
+    
+    # Query con JOIN per ottenere i nomi di sport e categorie
+    cursor.execute("""
+        SELECT c.*, 
+               COALESCE(s.nome, c.sport) as sport_nome,
+               COALESCE(cat.nome, c.categoria) as categoria_nome
+        FROM convocazioni c
+        LEFT JOIN sport s ON c.sport = s.id OR c.sport = s.nome
+        LEFT JOIN categorie cat ON (c.categoria = cat.id OR c.categoria = cat.nome)
+                                 AND (s.id = cat.sport_id OR c.sport = s.nome)
+        ORDER BY c.data_inizio
+    """)
+    
     rows = cursor.fetchall()
     conn.close()
 
@@ -31,33 +43,63 @@ def generate_ics_file():
             # Gestione corretta di data_inizio (datetime completo)
             data_inizio = parse_datetime(row['data_inizio'])
             
-            # Converti l'orario di partenza in un datetime
+            # L'orario di partenza per il promemoria
             orario_partenza = parse_time(row['orario_partenza'], base_date=data_inizio.date())
             
-            # Calcola l'anticipo per il promemoria
-            if orario_partenza and data_inizio:
-                alarm_trigger = orario_partenza - data_inizio
-            else:
-                alarm_trigger = timedelta(hours=-1)  # Default se non calcolabile
+            # Verifica che abbiamo lo sport_nome e categoria_nome
+            sport_nome = row['sport_nome'] or row['sport']
+            categoria_nome = row['categoria_nome'] or row['categoria']
             
+            # Crea un nuovo evento
             ev = Event()
-            ev.name = f"{row['sport']} - {row['categoria']} ({row['tipo_gara']})"               
-            ev.begin = data_inizio
-            ev.end = data_inizio + timedelta(hours=2)
+            
+            # Titolo con sport, categoria, squadre e tipo gara
+            # Formato: "Hockey - Senior: Team A vs Team B (Regular season)"
+            ev.name = f"{sport_nome} - {categoria_nome}: {row['squadre']} ({row['tipo_gara']})"
+            
+            # Data e ora corrette
+            ev.begin = data_inizio  # Usa l'orario esatto dell'inizio partita
+            ev.end = data_inizio + timedelta(hours=2)  # Durata di 2 ore
+            
+            # Aggiungi il luogo
             ev.location = row['luogo']
             
             # Descrizione dettagliata
-            ev.description = f"""
-            Note: {row['note'] or 'Nessuna nota'}
-            """
+            # Aggiungi informazioni sulla trasferta e le note specificate
+            desc_parts = []
+            
+            if row['trasferta']:
+                desc_parts.append(f"Trasferta: CHF {row['trasferta']}")
+            
+            if row['indennizzo']:
+                desc_parts.append(f"Indennizzo: CHF {row['indennizzo']}")
+                
+            if row['note']:
+                desc_parts.append(f"Note: {row['note']}")
+            
+            ev.description = "\n".join(desc_parts)
 
-            # Aggiungi promemoria
-            ev.alarms = [
-                DisplayAlarm(trigger=alarm_trigger),  # Ore prima della partita
-                DisplayAlarm(trigger=timedelta(days=-1)),  # 1 giorno prima
-            ]
+            # Aggiungi i promemoria (allarmi)
+            alarms = []
+            
+            # 1. Promemoria 1 giorno prima dell'inizio partita
+            alarms.append(DisplayAlarm(trigger=timedelta(days=-1)))
+            
+            # 2. Promemoria basato sull'orario di partenza (se disponibile)
+            if orario_partenza:
+                # Calcola la differenza tra l'orario di partenza e l'inizio partita
+                # e imposta un promemoria 2 ore prima della partenza
+                partenza_meno_2ore = orario_partenza - timedelta(hours=2)
+                if partenza_meno_2ore < data_inizio:
+                    # Se la partenza meno 2 ore è prima dell'inizio partita, calcola il delta
+                    trigger = partenza_meno_2ore - data_inizio
+                    alarms.append(DisplayAlarm(trigger=trigger))
+            
+            ev.alarms = alarms
+            
+            # Aggiungi l'evento al calendario
             cal.events.add(ev)
-            print(f"Evento aggiunto: {row['sport']} - {row['categoria']} il {data_inizio}")
+            print(f"Evento aggiunto: {ev.name} il {data_inizio}")
         except Exception as e:
             # In caso di errore, salta l'evento ma continua con gli altri
             print(f"Errore nella creazione dell'evento: {e}, dati: data_inizio={row['data_inizio']}, orario_partenza={row['orario_partenza']}")
@@ -132,29 +174,12 @@ def view_calendario(background_tasks: BackgroundTasks):
     """
     Visualizza il calendario e aggiorna il file ICS in background.
     """
-    # Aggiorna il calendario in background
-    background_tasks.add_task(generate_ics_file)
+    # Genera il calendario ora per assicurarsi che sia aggiornato
+    generate_ics_file()
     
     # Reindirizza al file statico
     return RedirectResponse(url="/static/calendario.ics")
 
-@router.get("/calendario.ics")
-def download_calendario(background_tasks: BackgroundTasks):
-    """
-    Scarica il file ICS e aggiorna il calendario in background.
-    """
-    # Aggiorna il calendario in background
-    background_tasks.add_task(generate_ics_file)
-    
-    # Se il file non esiste ancora, crealo prima
-    if not os.path.exists(CALENDARIO_PATH):
-        generate_ics_file()
-    
-    return FileResponse(
-        CALENDARIO_PATH, 
-        media_type='text/calendar',
-        filename="calendario_arbitri.ics"
-    )
 
 # Funzione helper da chiamare dopo ogni modifica alle convocazioni
 def update_calendar_after_change():
