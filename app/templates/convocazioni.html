@@ -125,13 +125,20 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <input type="text" name="sport" id="editSport" class="form-control" required>
+                                    <select name="sport" id="editSport" class="form-select" required>
+                                        <option value="">Seleziona sport</option>
+                                        {% for sport in sport_list %}
+                                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
+                                        {% endfor %}
+                                    </select>
                                     <label>Sport</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <input type="text" name="categoria" id="editCategoria" class="form-control" required>
+                                    <select name="categoria" id="editCategoria" class="form-select" required>
+                                        <option value="">Seleziona prima uno sport</option>
+                                    </select>
                                     <label>Categoria</label>
                                 </div>
                             </div>
