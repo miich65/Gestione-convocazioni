@@ -75,7 +75,7 @@ def generate_ics_file():
                 desc_parts.append(f"Indennizzo: CHF {row['indennizzo']}")
                 
             if row['note']:
-                desc_parts.append(f"Note: {row['note']}")
+                desc_parts.append(f"Note: \n{row['note']}")
             
             ev.description = "\n".join(desc_parts)
 
