@@ -99,7 +99,7 @@ def generate_ics_file():
                 # Calcola la differenza tra l'orario di partenza e l'inizio partita
                 if orario_partenza < data_inizio:
                     # L'orario di partenza è prima dell'inizio partita
-                    delta = orario_partenza - timedelta(hours=2) - data_inizio
+                    delta = orario_partenza - timedelta(hours=1) - data_inizio
                     alarms.append(DisplayAlarm(trigger=delta))
 
             ev.alarms = alarms
