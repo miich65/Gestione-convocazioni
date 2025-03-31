@@ -1,9 +1,9 @@
 from datetime import datetime
+import json
 
 def setup_template_filters(templates):
     """Configura i filtri personalizzati per i template Jinja2."""
     
-    @templates.env.filter
     def datetimeformat(value, format='%d/%m/%Y %H:%M'):
         """Formatta un oggetto datetime o una stringa datetime."""
         if value is None:
@@ -22,9 +22,11 @@ def setup_template_filters(templates):
                     return value
         
         return value.strftime(format)
-        
-    @templates.env.filter
+    
     def tojson(value):
         """Converte un valore in JSON. Necessario per i dati delle categorie."""
-        import json
         return json.dumps(value)
+    
+    # Aggiungi i filtri all'ambiente Jinja2
+    templates.env.filters["datetimeformat"] = datetimeformat
+    templates.env.filters["tojson"] = tojson
