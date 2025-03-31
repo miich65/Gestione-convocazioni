@@ -99,12 +99,13 @@ setup_database()
 # ---------------------------
 # Importa tutte le rotte
 # ---------------------------
-from routers import convocazioni, sport, calendario
+from routers import convocazioni, sport, calendario, api
 
 # Includi i router
 app.include_router(convocazioni.router, tags=["Convocazioni"])
 app.include_router(sport.router, tags=["Sport"])
 app.include_router(calendario.router, tags=["Calendario"])
+app.include_router(api.router, tags=["API"])
 
 # Se l'app viene eseguita direttamente
 if __name__ == "__main__":

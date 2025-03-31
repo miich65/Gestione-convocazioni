@@ -87,7 +87,7 @@
                     </div>
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    <a href="/calendario.ics" class="btn btn-outline-primary">
+                    <a href="/calendario" class="btn btn-outline-primary">
                         <i class="bi bi-calendar-plus me-2"></i>Esporta Calendario
                     </a>
                     <div class="text-muted">
@@ -108,7 +108,7 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editConvocazioneForm" action="/update/{conv_id}" method="post">
+                <form id="editConvocazioneForm" action="/update/0" method="post">
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -125,20 +125,13 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <select name="sport_id" id="editSport" class="form-select" required>
-                                        <option value="">Seleziona sport</option>
-                                        {% for sport in sport_list %}
-                                            <option value="{{ sport.id }}">{{ sport.nome }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <input type="text" name="sport" id="editSport" class="form-control" required>
                                     <label>Sport</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <select name="categoria_id" id="editCategoria" class="form-select" required>
-                                        <option value="">Seleziona prima uno sport</option>
-                                    </select>
+                                    <input type="text" name="categoria" id="editCategoria" class="form-control" required>
                                     <label>Categoria</label>
                                 </div>
                             </div>
