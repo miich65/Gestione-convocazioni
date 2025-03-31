@@ -63,7 +63,9 @@
                                                     data-data-inizio="{{ conv.data_inizio }}"
                                                     data-orario-partenza="{{ conv.orario_partenza }}"
                                                     data-sport="{{ conv.sport }}"
+                                                    data-sport-id="{{ conv.sport_id|default('') }}"
                                                     data-categoria="{{ conv.categoria }}"
+                                                    data-categoria-id="{{ conv.categoria_id|default('') }}"
                                                     data-tipo-gara="{{ conv.tipo_gara }}"
                                                     data-squadre="{{ conv.squadre }}"
                                                     data-luogo="{{ conv.luogo }}"
@@ -136,8 +138,8 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <select name="categoria" id="editCategoria" class="form-select" required>
-                                        <option value="">Seleziona prima uno sport</option>
+                                    <select name="categoria" id="editCategoria" class="form-select" required disabled>
+                                        <option value="">Seleziona categoria</option>
                                     </select>
                                     <label>Categoria</label>
                                 </div>

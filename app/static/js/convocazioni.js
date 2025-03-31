@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!sportId || !categorieData || !categorieData[sportId]) {
             console.log('Nessuna categoria trovata per sport ID:', sportId);
+            categoriaSelect.disabled = true;
             return;
         }
         
@@ -41,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
             categoriaSelect.appendChild(option);
         });
         
+        // Abilita il dropdown delle categorie
+        categoriaSelect.disabled = false;
+        
         console.log('Dropdown categorie popolato con', categorieData[sportId].length, 'opzioni');
     }
     
@@ -50,10 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
         sportSelect.addEventListener('change', function() {
             const sportId = this.value;
             console.log('Sport selezionato:', sportId);
+            
+            // Disabilita il dropdown delle categorie se non è selezionato uno sport
+            const categoriaSelect = document.getElementById('editCategoria');
+            if (!sportId) {
+                categoriaSelect.disabled = true;
+                categoriaSelect.innerHTML = '<option value="">Seleziona categoria</option>';
+                return;
+            }
+            
             populateCategorieDropdown(sportId);
             
             // Aggiorna anche l'indennizzo se c'è una categoria di default selezionata
-            const categoriaSelect = document.getElementById('editCategoria');
             if (categoriaSelect.selectedIndex > 0) {
                 updateIndennizzo();
             }
@@ -104,7 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const dataInizio = this.getAttribute('data-data-inizio');
             const orarioPartenza = this.getAttribute('data-orario-partenza');
             const sport = this.getAttribute('data-sport');
+            const sportId = this.getAttribute('data-sport-id');
             const categoria = this.getAttribute('data-categoria');
+            const categoriaId = this.getAttribute('data-categoria-id');
             const tipoGara = this.getAttribute('data-tipo-gara');
             const squadre = this.getAttribute('data-squadre');
             const luogo = this.getAttribute('data-luogo');
@@ -113,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const note = this.getAttribute('data-note');
             
             console.log('Modifica convocazione:', {
-                convId, sport, categoria, tipoGara
+                convId, sport, sportId, categoria, categoriaId, tipoGara
             });
             
             // Aggiorna il form modale
@@ -141,33 +155,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 const sportResponse = await fetch('/api/sport');
                 const sportData = await sportResponse.json();
                 
-                // Trova l'ID dello sport basato sul nome
-                let sportId = null;
-                for (const s of sportData) {
-                    if (s.nome === sport) {
-                        sportId = s.id.toString();
-                        break;
+                // Trova l'ID dello sport basato sul nome (se non è già disponibile)
+                let selectedSportId = sportId || '';
+                if (!selectedSportId && sport) {
+                    for (const s of sportData) {
+                        if (s.nome === sport) {
+                            selectedSportId = s.id.toString();
+                            break;
+                        }
                     }
                 }
                 
                 // Imposta lo sport nel dropdown
-                if (sportId) {
-                    document.getElementById('editSport').value = sportId;
+                if (selectedSportId) {
+                    const sportSelect = document.getElementById('editSport');
+                    sportSelect.value = selectedSportId;
                     
                     // Popola il dropdown delle categorie
-                    populateCategorieDropdown(sportId);
+                    populateCategorieDropdown(selectedSportId);
                     
-                    // Trova la categoria basata sul nome
-                    if (categorieData[sportId]) {
-                        for (const cat of categorieData[sportId]) {
+                    // Trova la categoria basata sul nome o ID
+                    let selectedCategoriaId = categoriaId || '';
+                    if (!selectedCategoriaId && categoria && categorieData[selectedSportId]) {
+                        for (const cat of categorieData[selectedSportId]) {
                             if (cat.nome === categoria) {
-                                // Aggiungi un piccolo ritardo per essere sicuri che il dropdown sia popolato
-                                setTimeout(() => {
-                                    document.getElementById('editCategoria').value = cat.id;
-                                }, 100);
+                                selectedCategoriaId = cat.id.toString();
                                 break;
                             }
                         }
+                    }
+                    
+                    // Imposta la categoria nel dropdown (con un piccolo ritardo per essere sicuri che il dropdown sia popolato)
+                    if (selectedCategoriaId) {
+                        setTimeout(() => {
+                            const categoriaSelect = document.getElementById('editCategoria');
+                            categoriaSelect.value = selectedCategoriaId;
+                            updateIndennizzo();
+                        }, 100);
                     }
                 }
             } catch (error) {
