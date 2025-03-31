@@ -48,12 +48,6 @@ def generate_ics_file():
             
             # Descrizione dettagliata
             ev.description = f"""
-            Sport: {row['sport']}
-            Categoria: {row['categoria']}
-            Tipo Gara: {row['tipo_gara']}
-            Squadre: {row['squadre']}
-            Indennizzo: CHF {row['indennizzo']}
-            Trasferta: {row['trasferta']} CHF
             Note: {row['note'] or 'Nessuna nota'}
             """
 
