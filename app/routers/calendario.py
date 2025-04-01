@@ -80,7 +80,7 @@ def generate_ics_file():
                 desc_parts.append(f"Indennizzo: CHF {row['indennizzo']}")
                 
             if row['note']:
-                desc_parts.append(f"Note aggiuntive: \n{row['note']}")
+                desc_parts.append(f"\nNote aggiuntive: \n{row['note']}")
             
             ev.description = "\n".join(desc_parts)
 
@@ -102,8 +102,6 @@ def generate_ics_file():
                     delta = orario_partenza - timedelta(hours=1) - data_inizio
                     alarms.append(DisplayAlarm(trigger=delta))
 
-            ev.alarms = alarms
-            
             ev.alarms = alarms
             
             # Aggiungi l'evento al calendario
