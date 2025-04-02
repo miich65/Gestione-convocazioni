@@ -40,13 +40,23 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     )
     
     try:
+        # Prima prova a ottenere il token dal cookie
+        request = Request()
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token and cookie_token.startswith("Bearer "):
+            token = cookie_token.replace("Bearer ", "")
+        
+        # Se non c'è un token, solleva eccezione
+        if not token:
+            raise credentials_exception
+            
         payload = decode_token(token)
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
         
         token_data = TokenData(username=username, role=payload.get("role"))
-    except JWTError:
+    except Exception:
         raise credentials_exception
         
     user = user_repo.get_user_by_username(username=token_data.username)
@@ -58,15 +68,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         id=user["id"],
         username=user["username"],
         email=user["email"],
-        full_name=user["full_name"],
+        full_name=user.get("full_name", ""),
         role=user["role"],
         is_active=bool(user["is_active"])
     )
 
 def get_current_user_from_cookie(request: Request) -> Optional[User]:
-    """Estrae l'utente dal cookie access_token"""
+    """Estrae l'utente dal cookie access_token."""
     token = request.cookies.get("access_token")
-    if not token or not token.startswith("Bearer "):
+    print(f"Cookie token: {token}")  # Debug
+    
+    if not token:
+        return None
+        
+    if not token.startswith("Bearer "):
         return None
         
     token = token.replace("Bearer ", "")
@@ -79,18 +94,19 @@ def get_current_user_from_cookie(request: Request) -> Optional[User]:
             return None
             
         user_data = user_repo.get_user_by_username(username)
-        if not user_data or not user_data["is_active"]:
+        if not user_data:
             return None
             
         return User(
             id=user_data["id"],
             username=user_data["username"],
             email=user_data["email"],
-            full_name=user_data["full_name"],
+            full_name=user_data.get("full_name", ""),
             role=user_data["role"],
             is_active=bool(user_data["is_active"])
         )
-    except JWTError:
+    except Exception as e:
+        print(f"Errore decodifica token: {str(e)}")  # Debug
         return None
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:

@@ -64,7 +64,9 @@ async def login(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        max_age=int(access_token_expires.total_seconds())
+        max_age=int(access_token_expires.total_seconds()),
+        path="/",       # Assicurati che il cookie sia disponibile per tutto il sito
+        samesite="lax"  # Importante per la sicurezza e per consentire redirezioni
     )
     
     return response
