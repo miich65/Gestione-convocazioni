@@ -14,8 +14,8 @@ from typing import List, Optional
 
 # Importazioni dal progetto
 from main import templates  # Usa l'istanza condivisa dei template
-from core.email_client import process_emails, check_emails_continuously
-from core.email_parser import parse_convocazione_email, save_convocazione
+from core.email_client import process_emails, check_emails_continuously, save_convocazione
+from core.email_parser import parse_convocazione_email
 from routers.calendario import update_calendar_after_change
 
 # Configura il logger
