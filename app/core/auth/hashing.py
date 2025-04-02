@@ -1,12 +1,12 @@
-from passlib.context import CryptContext
-
-# Configurazione per l'hashing delle password
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifica che la password corrisponda all'hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+import bcrypt
 
 def get_password_hash(password: str) -> str:
-    """Genera un hash da una password"""
-    return pwd_context.hash(password)
+    """Genera un hash da una password."""
+    # Genera un salt e poi crea l'hash della password con quel salt
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifica che la password corrisponda all'hash."""
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
