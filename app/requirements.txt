@@ -4,3 +4,7 @@ jinja2
 ics
 python-multipart
 python-dateutil
+
+
+# Nuove dipendenze per l'importazione delle email
+beautifulsoup4>=4.9.3

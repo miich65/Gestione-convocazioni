@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block title %}Importazione Email - RefManager{% endblock %}
+
+{% block extra_head %}
+<style>
+    .email-import-wrapper {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 120px);
+        padding: 2rem 0;
+    }
+    
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        border: none;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-bottom: none;
+        padding: 1rem;
+    }
+    
+    .credentials-warning {
+        background-color: #fff3cd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .config-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .log-table {
+        font-size: 0.9rem;
+    }
+    
+    .log-table .badge {
+        padding: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .log-success {
+        background-color: #d4edda;
+    }
+    
+    .log-error {
+        background-color: #f8d7da;
+    }
+    
+    .log-info {
+        background-color: #e2f0fd;
+    }
+    
+    .control-button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .html-input {
+        font-family: monospace;
+        font-size: 0.85rem;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .status-on {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-off {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    @media (max-width: 767px) {
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-header h2 {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container email-import-wrapper">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 fs-4">
+                        <i class="bi bi-envelope me-2"></i>Importazione Email Convocazioni
+                        {% if check_running %}
+                            <span class="status-badge status-on">
+                                <i class="bi bi-play-circle"></i> Attivo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-off">
+                                <i class="bi bi-stop-circle"></i> Inattivo
+                            </span>
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="credentials-warning">
+                        <h5 class="mb-2">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Importante
+                        </h5>
+                        <p class="mb-0">
+                            Per utilizzare questa funzionalità, è necessario configurare le credenziali 
+                            email nel file <code>core/email_client.py</code> o impostare le variabili 
+                            d'ambiente appropriate.
+                        </p>
+                    </div>
+                    
+                    <h5 class="mb-3">Configurazione Email</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <span>Server:</span>
+                                <code>{{ email_server|default('imap.gmail.com') }}</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <span>Email:</span>
+                                <code>{{ email_user|default('***@***.***') }}</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <span>Mittente da cercare:</span>
+                                <code>dguidi63@hotmail.com</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <span>Intervallo controllo:</span>
+                                <code>5 minuti</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3">Controllo Email</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <form id="check-now-form" action="/email-import/check-now" method="post">
+                                <button type="submit" class="btn btn-primary control-button">
+                                    <i class="bi bi-envelope-check me-1"></i> Controlla Ora
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form id="start-check-form" action="/email-import/start-check" method="post">
+                                <button type="submit" class="btn btn-success control-button" {% if check_running %}disabled{% endif %}>
+                                    <i class="bi bi-play me-1"></i> Avvia Controllo Automatico
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form id="stop-check-form" action="/email-import/stop-check" method="post">
+                                <button type="submit" class="btn btn-danger control-button" {% if not check_running %}disabled{% endif %}>
+                                    <i class="bi bi-stop me-1"></i> Ferma Controllo Automatico
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="mb-0 fs-4">
+                        <i class="bi bi-file-earmark-text me-2"></i>Importazione Manuale
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form id="manual-import-form" action="/email-import/manual-import" method="post">
+                        <div class="mb-3">
+                            <label for="htmlContent" class="form-label">HTML dell'Email</label>
+                            <textarea 
+                                class="form-control html-input" 
+                                id="htmlContent" 
+                                name="html_content" 
+                                rows="8" 
+                                placeholder="Incolla qui l'HTML completo dell'email di convocazione..."
+                                required
+                            ></textarea>
+                            <div class="form-text">
+                                Incolla l'HTML completo dell'email di convocazione. Per ottenerlo, apri l'email originale
+                                e visualizza il codice sorgente (in Gmail, clicca su "Mostra originale").
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i> Importa Manualmente
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0 fs-4">
+                        <i class="bi bi-list-check me-2"></i>Log delle Importazioni
+                    </h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 log-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Convocazione</th>
+                                    <th>Stato</th>
+                                    <th>Messaggio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if logs %}
+                                    {% for log in logs %}
+                                        <tr class="{% if log.status == 'success' %}log-success{% elif log.status == 'error' %}log-error{% else %}log-info{% endif %}">
+                                            <td>{{ log.timestamp }}</td>
+                                            <td>
+                                                {% if log.convocazione_id %}
+                                                    <a href="/convocazioni?highlight={{ log.convocazione_id }}">
+                                                        ID: {{ log.convocazione_id }}
+                                                    </a>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if log.status == 'success' %}
+                                                    <span class="badge bg-success">Successo</span>
+                                                {% elif log.status == 'error' %}
+                                                    <span class="badge bg-danger">Errore</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">Info</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ log.message }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <em>Nessun log di importazione disponibile</em>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestione del form di controllo immediato
+    const checkNowForm = document.getElementById('check-now-form');
+    if (checkNowForm) {
+        checkNowForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const button = checkNowForm.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Controllo in corso...';
+            
+            fetch('/email-import/check-now', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                showAlert(data.status === 'success' ? 'success' : 'danger', data.message);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showAlert('danger', 'Errore durante il controllo');
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-envelope-check me-1"></i> Controlla Ora';
+            });
+        });
+    }
+    
+    // Gestione del form di avvio controllo automatico
+    const startCheckForm = document.getElementById('start-check-form');
+    if (startCheckForm) {
+        startCheckForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const button = startCheckForm.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Avvio in corso...';
+            
+            fetch('/email-import/start-check', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                showAlert(data.status === 'success' ? 'success' : 'danger', data.message);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showAlert('danger', 'Errore durante l\'avvio del controllo');
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-play me-1"></i> Avvia Controllo Automatico';
+            });
+        });
+    }
+    
+    // Gestione del form di arresto controllo automatico
+    const stopCheckForm = document.getElementById('stop-check-form');
+    if (stopCheckForm) {
+        stopCheckForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const button = stopCheckForm.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Arresto in corso...';
+            
+            fetch('/email-import/stop-check', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                showAlert(data.status === 'success' ? 'success' : 'danger', data.message);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showAlert('danger', 'Errore durante l\'arresto del controllo');
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-stop me-1"></i> Ferma Controllo Automatico';
+            });
+        });
+    }
+    
+    // Gestione del form di importazione manuale
+    const manualImportForm = document.getElementById('manual-import-form');
+    if (manualImportForm) {
+        manualImportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const button = manualImportForm.querySelector('button[type="submit"]');
+            const htmlContent = document.getElementById('htmlContent').value;
+            
+            if (!htmlContent) {
+                showAlert('danger', 'Inserisci l\'HTML dell\'email');
+                return;
+            }
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Importazione in corso...';
+            
+            // Crea un oggetto FormData per inviare il contenuto HTML
+            const formData = new FormData();
+            formData.append('html_content', htmlContent);
+            
+            fetch('/email-import/manual-import', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert('success', `Convocazione importata con successo! ID: ${data.id}`);
+                    document.getElementById('htmlContent').value = '';
+                } else {
+                    showAlert('danger', data.message || 'Errore durante l\'importazione');
+                }
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showAlert('danger', 'Errore durante l\'importazione');
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-upload me-1"></i> Importa Manualmente';
+            });
+        });
+    }
+    
+    // Funzione per mostrare un alert
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const cardBody = document.querySelector('.card-body');
+        cardBody.insertBefore(alertDiv, cardBody.firstChild);
+        
+        // Nascondi automaticamente l'alert dopo 5 secondi
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}
