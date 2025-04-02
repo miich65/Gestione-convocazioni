@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Request, Form, BackgroundTasks
+from fastapi import APIRouter, Request, Form, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 import sqlite3
+
+from core.auth.dependencies import get_current_active_user
+from models.user import User
 
 # Importa la funzione per aggiornare il calendario
 from routers.calendario import update_calendar_after_change
@@ -16,7 +19,7 @@ DB_PATH = "data/convocazioni.db"
 from main import templates
 
 @router.get("/", response_class=HTMLResponse)
-def form_get(request: Request):
+def form_get(request: Request, current_user: User = Depends(get_current_active_user)):
     """Pagina di inserimento convocazione"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -48,7 +51,7 @@ def form_get(request: Request):
 
 
 @router.get("/convocazioni", response_class=HTMLResponse)
-def lista_convocazioni(request: Request):
+def lista_convocazioni(request: Request, current_user: User = Depends(get_current_active_user)):
     """Pagina con la lista delle convocazioni"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -101,6 +104,7 @@ def lista_convocazioni(request: Request):
 def form_post(
     request: Request,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),  # Aggiungi questa dipendenza
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
@@ -117,12 +121,12 @@ def form_post(
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
-    # Salva la convocazione con gli ID
+    # Salva la convocazione con gli ID e l'ID utente
     cursor.execute('''
-        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO convocazioni (data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note
+        data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note, current_user.id
     ))
 
     # Prepara i dati per ricaricare il form
@@ -158,10 +162,26 @@ def form_post(
     })
 
 @router.post("/delete/{conv_id}")
-def delete_convocazione(conv_id: int, background_tasks: BackgroundTasks):
+def delete_convocazione(
+    conv_id: int, 
+    background_tasks: BackgroundTasks, 
+    current_user: User = Depends(get_current_active_user)
+):
     """Elimina una convocazione"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # Verifica che la convocazione appartenga all'utente o che l'utente sia admin
+    if current_user.role != "admin":
+        cursor.execute("SELECT user_id FROM convocazioni WHERE id=?", (conv_id,))
+        result = cursor.fetchone()
+        if not result or result[0] != current_user.id:
+            conn.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Non hai il permesso di eliminare questa convocazione"
+            )
+    
     cursor.execute("DELETE FROM convocazioni WHERE id=?", (conv_id,))
     conn.commit()
     conn.close()
@@ -175,6 +195,7 @@ def delete_convocazione(conv_id: int, background_tasks: BackgroundTasks):
 def update_convocazione(
     conv_id: int,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
     data_inizio: str = Form(...),
     orario_partenza: str = Form(...),
     sport: str = Form(...),
@@ -190,12 +211,25 @@ def update_convocazione(
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
+    # Verifica che la convocazione appartenga all'utente o che l'utente sia admin
+    if current_user.role != "admin":
+        cursor.execute("SELECT user_id FROM convocazioni WHERE id=?", (conv_id,))
+        result = cursor.fetchone()
+        if not result or result[0] != current_user.id:
+            conn.close()
+            raise HTTPException(
+                status_code=403,
+                detail="Non hai il permesso di modificare questa convocazione"
+            )
+    
     cursor.execute("""
         UPDATE convocazioni
-        SET data_inizio=?, orario_partenza=?, sport=?, categoria=?, tipo_gara=?, squadre=?, luogo=?, trasferta=?, indennizzo=?, note=?
+        SET data_inizio=?, orario_partenza=?, sport=?, categoria=?, tipo_gara=?, 
+            squadre=?, luogo=?, trasferta=?, indennizzo=?, note=?
         WHERE id=?
     """, (
-        data_inizio, orario_partenza, sport, categoria, tipo_gara, squadre, luogo, trasferta, indennizzo, note, conv_id
+        data_inizio, orario_partenza, sport, categoria, tipo_gara, 
+        squadre, luogo, trasferta, indennizzo, note, conv_id
     ))
     
     conn.commit()

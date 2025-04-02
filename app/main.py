@@ -2,15 +2,20 @@
 # Applicazione FastAPI per gestire convocazioni arbitrali
 # ---------------------------
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 from datetime import datetime, timedelta
 import sqlite3
 import os
 
 # Import del filtro dei template
 from core.template_filters import setup_template_filters
+
+# Importazioni per autenticazione
+from core.auth.dependencies import get_current_user_from_cookie
+import repositories.user_repository as user_repo
 
 # Inizializzazione dell'app FastAPI
 app = FastAPI(title="Gestione Convocazioni Arbitrali")
@@ -30,6 +35,28 @@ os.makedirs("static/js", exist_ok=True)
 
 templates = Jinja2Templates(directory="templates")
 setup_template_filters(templates)
+
+# ---------------------------
+# Middleware per gestire l'utente corrente in ogni richiesta
+# ---------------------------
+class UserMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Aggiungi l'utente corrente allo state della richiesta
+        request.state.user = get_current_user_from_cookie(request)
+        response = await call_next(request)
+        return response
+
+app.add_middleware(UserMiddleware)
+
+# Aggiungi contesto utente a tutti i template
+@app.middleware("http")
+async def add_user_to_templates(request: Request, call_next):
+    response = await call_next(request)
+    if hasattr(request.state, "user") and hasattr(response, "context"):
+        # Se la risposta è un template, aggiungi l'utente al contesto
+        if hasattr(response.context, "get"):
+            response.context["user"] = request.state.user
+    return response
 
 # ---------------------------
 # Connessione al database e creazione delle tabelle se non esistono
@@ -60,7 +87,8 @@ def setup_database():
         luogo TEXT,
         trasferta REAL,
         indennizzo REAL,
-        note TEXT)''')
+        note TEXT,
+        user_id INTEGER DEFAULT NULL REFERENCES users(id))''')
 
     cursor.execute("SELECT COUNT(*) FROM sport")
     if cursor.fetchone()[0] == 0:
@@ -96,10 +124,13 @@ def setup_database():
 # Setup iniziale del database
 setup_database()
 
+# Inizializza le tabelle per autenticazione
+user_repo.setup_auth_tables()
+
 # ---------------------------
 # Importa tutte le rotte
 # ---------------------------
-from routers import convocazioni, sport, calendario, api, email_import
+from routers import convocazioni, sport, calendario, api, email_import, auth
 
 # Includi i router
 app.include_router(convocazioni.router, tags=["Convocazioni"])
@@ -107,6 +138,7 @@ app.include_router(sport.router, tags=["Sport"])
 app.include_router(calendario.router, tags=["Calendario"])
 app.include_router(api.router, tags=["API"])
 app.include_router(email_import.router, tags=["Email Import"])
+app.include_router(auth.router, tags=["Auth"])
 
 # Inizializza il controllo automatico delle email
 email_import.init_email_check()

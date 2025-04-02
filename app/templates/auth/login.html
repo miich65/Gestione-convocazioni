@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Accedi - RefManager{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-container {
+        max-width: 430px;
+        margin: 2rem auto;
+    }
+    
+    .auth-card {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        padding: 2rem 0;
+        text-align: center;
+        color: white;
+    }
+    
+    .auth-logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+    
+    .auth-form {
+        padding: 2rem;
+    }
+    
+    .auth-input {
+        border-radius: 10px;
+        padding: 12px 15px;
+        margin-bottom: 1.2rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s;
+    }
+    
+    .auth-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+    
+    .auth-btn {
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 1rem;
+        width: 100%;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+    
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .auth-footer {
+        text-align: center;
+        padding: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card auth-card">
+        <div class="auth-header">
+            <h2 class="mb-0">Accedi</h2>
+            <p class="mb-0 text-white-50">Inserisci le tue credenziali</p>
+        </div>
+        
+        <div class="auth-form">
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+            
+            {% if success %}
+                <div class="alert alert-success" role="alert">{{ success }}</div>
+            {% endif %}
+            
+            <form method="post" action="/login">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control auth-input" id="username" name="username" required autocomplete="username">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control auth-input" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember" value="true">
+                    <label class="form-check-label" for="remember">Ricordami</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary auth-btn">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Accedi
+                </button>
+            </form>
+        </div>
+        
+        <div class="auth-footer">
+            <p class="mb-0">Non hai un account? <a href="/register">Registrati</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

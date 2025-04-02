@@ -5,6 +5,7 @@ ics
 python-multipart
 python-dateutil
 
-
-# Nuove dipendenze per l'importazione delle email
 beautifulsoup4>=4.9.3
+python-jose[cryptography]
+passlib[bcrypt]
+email-validator
