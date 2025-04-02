@@ -23,7 +23,7 @@ DB_PATH = "data/convocazioni.db"
 
 # Credenziali email (da sostituire con le tue)
 EMAIL_USER = os.environ.get("EMAIL_USER", "mic.ferreira2004@gmail.com")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "0Nmyblock!")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "lqer rbjb cmhy hwyj")
 EMAIL_SERVER = os.environ.get("EMAIL_SERVER", "imap.gmail.com")  # o imap.outlook.com per Outlook
 EMAIL_FOLDER = os.environ.get("EMAIL_FOLDER", "skater")
 
