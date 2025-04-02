@@ -22,13 +22,13 @@ logger = logging.getLogger(__name__)
 DB_PATH = "data/convocazioni.db"
 
 # Credenziali email (da sostituire con le tue)
-EMAIL_USER = os.environ.get("EMAIL_USER", "tua.email@esempio.com")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "password")
+EMAIL_USER = os.environ.get("EMAIL_USER", "mic.ferreira2004@gmail.com")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "0Nmyblock!")
 EMAIL_SERVER = os.environ.get("EMAIL_SERVER", "imap.gmail.com")  # o imap.outlook.com per Outlook
-EMAIL_FOLDER = os.environ.get("EMAIL_FOLDER", "INBOX")
+EMAIL_FOLDER = os.environ.get("EMAIL_FOLDER", "skater")
 
 # Filtri per la ricerca delle email
-EMAIL_SEARCH_FROM = "dguidi63@hotmail.com"
+EMAIL_SEARCH_FROM = "noreply@sportwizz.ch"
 
 def connect_to_server() -> Optional[imaplib.IMAP4_SSL]:
     """
