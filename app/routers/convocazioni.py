@@ -19,7 +19,12 @@ DB_PATH = "data/convocazioni.db"
 from main import templates
 
 @router.get("/", response_class=HTMLResponse)
-def form_get(request: Request, current_user: User = Depends(get_current_active_user)):
+def form_get(request: Request):
+
+    if not hasattr(request.state, 'user') or not request.state.user:
+        # Se non è autenticato, reindirizza al login
+        return RedirectResponse(url="/login", status_code=303)
+
     """Pagina di inserimento convocazione"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
