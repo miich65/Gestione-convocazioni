@@ -7,5 +7,5 @@ python-dateutil
 
 beautifulsoup4>=4.9.3
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 email-validator
